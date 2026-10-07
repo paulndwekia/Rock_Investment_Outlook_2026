@@ -1,0 +1,55 @@
+{
+  "risk": {
+    "numeric_fields": [
+      "Observations",
+      "First_Price",
+      "Last_Price",
+      "Total_Return",
+      "Annualized_Return",
+      "Annualized_Volatility",
+      "Maximum_Drawdown",
+      "Average_Volume",
+      "Total_Net_Foreign_Flow",
+      "Positive_Return_Days"
+    ],
+    "Maximum_Drawdown": -1.0
+  },
+  "treasury_bills": {
+    "latest_date": "2026-06-15",
+    "latest_rates": {
+      "182-Day": 8.6,
+      "364-Day": 8.87,
+      "91-Day": 8.71
+    },
+    "91d_364d_spread": 0.15999999999999837
+  },
+  "yield_curve": {
+    "points": 7,
+    "short_maturity": "1 Year",
+    "short_yield": 8.99,
+    "long_maturity": "30 Years",
+    "long_yield": 13.43,
+    "long_short_spread": 4.4399999999999995
+  },
+  "bond_index": {
+    "observations": 145,
+    "latest_value": 1125.28,
+    "total_sample_return": 0.12528000000000006
+  },
+  "inflation": {
+    "latest_date": "2026-06-29",
+    "latest_value": 6.4
+  },
+  "foreign_flows": {
+    "numeric_fields": [
+      "Observations",
+      "Foreign_Flow_Return_Correlation",
+      "P_Value"
+    ]
+  },
+  "scenario_framework": {
+    "curve_slope": 4.4399999999999995,
+    "tbill_91d_364d_spread": 0.15999999999999837,
+    "latest_inflation": 6.4
+  }
+}

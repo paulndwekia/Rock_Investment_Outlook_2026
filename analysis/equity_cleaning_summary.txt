@@ -1,0 +1,49 @@
+ROCK NSE EQUITY CLEANING
+
+Raw table:
+  rock_nse_analysis
+
+Canonical clean table:
+  rock_nse_analysis_clean
+
+Raw rows:
+  181,554
+
+Rows after exact duplicate cleanup:
+  181,554
+
+Exact duplicates removed:
+  0
+
+Analytical observations excluded:
+  34,880
+
+Final clean rows:
+  146,674
+
+Final non-positive prices:
+  0
+
+SQLite clean rows:
+  146,674
+
+SQLite non-positive prices:
+  0
+
+Raw Rock data:
+  NOT MODIFIED OR DELETED
+
+Application loader patched:
+  NO
+
+Clean CSV:
+  C:\Users\ADMIN\Desktop\Rock_Investment_Outlook_2026\analysis\clean_nse_analysis.csv
+
+Diagnostics:
+  C:\Users\ADMIN\Desktop\Rock_Investment_Outlook_2026\analysis\equity_price_repair_diagnostics.csv
+
+Database backup:
+  C:\Users\ADMIN\Desktop\Rock_Investment_Outlook_2026\database\rock_investment_intelligence.before_equity_clean_20261003_122226.db
+
+App backup:
+  C:\Users\ADMIN\Desktop\Rock_Investment_Outlook_2026\website\app.before_equity_clean_20261003_122226.py

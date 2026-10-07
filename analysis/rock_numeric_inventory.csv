@@ -1,0 +1,20 @@
+﻿dataset,column,numeric_values,total_values,coverage
+diaspora_remittances,amount,250,250,1.0
+exchange_rates,exchange_rate,1000,1000,1.0
+forex_reserves,value_usd_million,231,334,0.6916167664670658
+fuel_prices,price,174,174,1.0
+historical_pmi,pmi_value,137,137,1.0
+inflation_data,rate,132,132,1.0
+international_arrivals,arrivals,194,194,1.0
+liquidity_indicators,value,1000,1000,1.0
+monetary_policy_indicators,value,66,66,1.0
+nse_analysis,Change %,118539,181554,0.6529131828546879
+nse_analysis,Daily_Return,118557,181554,0.6530123269110016
+nse_analysis,Log_Return,118536,181554,0.6528966588453022
+nse_analysis,Net Foreign Flow,145779,181554,0.8029511880762749
+nse_analysis,Price (KES),146816,181554,0.8086629873205768
+nse_analysis,Volume,135031,181554,0.7437511704506649
+nse_bond_index,index_value,145,145,1.0
+public_debt,amount_kes,604,604,1.0
+treasury_bills,rate,1768,1768,1.0
+yield_curve,yield,32,32,1.0

@@ -1,0 +1,92 @@
+file,type,size_mb,sheets,rows,columns,column_names,date_min,date_max,error,Dataset,Excel,file_canonical,Is_Canonical
+a3. Estimates-on-the-use-of-water-(2020)-a-3712 (1).csv,.csv,0.03,CSV,213.0,1.0,name;income_group;pop_n;pop_u;wat_bas_n;wat_lim_n;wat_unimp_n;wat_sur_n;wat_bas_r;wat_lim_r;wat_unimp_r;wat_sur_r;wat_bas_u;wat_lim_u;wat_unimp_u;wat_sur_u,,,,a3._estimates-on-the-use-of-water--a-3712,0,a3. Estimates-on-the-use-of-water-(2020)-a-3712 (1).csv,True
+diaspora_remittances_2026-10-02.xlsx,.xlsx,0.09,Data,250.0,4.0,Date | Country | Amount | Source,2005-07-01,2026-04-01,,diaspora_remittances,1,diaspora_remittances_2026-10-02.xlsx,True
+diaspora_remittances_2026-10-02.csv,.csv,0.04,CSV,250.0,4.0,Date | Country | Amount | Source,2005-07-01,2026-04-01,,diaspora_remittances,0,diaspora_remittances_2026-10-02.xlsx,False
+Estimates of the use of water (2000-2020).csv,.csv,0.06,CSV,464.0,16.0,name | year | pop_n | pop_u | wat_bas_n | wat_lim_n | wat_unimp_n | wat_sur_n | wat_bas_r | wat_lim_r | wat_unimp_r | wat_sur_r | wat_bas_u | wat_lim_u | wat_unimp_u | wat_sur_u,1970-01-01,1970-01-01,,estimates_of_the_use_of_water_(),0,Estimates of the use of water (2000-2020).csv,True
+exchange_rates_2026-10-02 (1).xlsx,.xlsx,0.32,Data,1000.0,4.0,Date | Currency_pair | Exchange Rate | Source,2023-02-17,2026-06-25,,exchange_rates,1,exchange_rates_2026-10-02 (1).xlsx,True
+exchange_rates_2026-10-02.xlsx,.xlsx,0.32,Data,1000.0,4.0,Date | Currency_pair | Exchange Rate | Source,2023-02-17,2026-06-25,,exchange_rates,1,exchange_rates_2026-10-02 (1).xlsx,False
+exchange_rates_2026-10-02 (1).csv,.csv,0.17,CSV,1000.0,4.0,Date | Currency_pair | Exchange Rate | Source,2023-02-17,2026-06-25,,exchange_rates,0,exchange_rates_2026-10-02 (1).xlsx,False
+exchange_rates_2026-10-02.csv,.csv,0.17,CSV,1000.0,4.0,Date | Currency_pair | Exchange Rate | Source,2023-02-17,2026-06-25,,exchange_rates,0,exchange_rates_2026-10-02 (1).xlsx,False
+forex_reserves_2026-10-02 (1).xlsx,.xlsx,0.12,Data,334.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-06,2026-06-26,,forex_reserves,1,forex_reserves_2026-10-02 (1).xlsx,True
+forex_reserves_2026-10-02.xlsx,.xlsx,0.12,Data,334.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-06,2026-06-26,,forex_reserves,1,forex_reserves_2026-10-02 (1).xlsx,False
+forex_reserves_2026-10-02 (2).xlsx,.xlsx,0.12,Data,333.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-13,2026-06-26,,forex_reserves,1,forex_reserves_2026-10-02 (1).xlsx,False
+forex_reserves_2026-10-02 (3).xlsx,.xlsx,0.12,Data,333.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-13,2026-06-26,,forex_reserves,1,forex_reserves_2026-10-02 (1).xlsx,False
+forex_reserves_2026-10-02 (4).xlsx,.xlsx,0.12,Data,333.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-13,2026-06-26,,forex_reserves,1,forex_reserves_2026-10-02 (1).xlsx,False
+forex_reserves_2026-10-02.csv,.csv,0.06,CSV,334.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-06,2026-06-26,,forex_reserves,0,forex_reserves_2026-10-02 (1).xlsx,False
+forex_reserves_2026-10-02 (1).csv,.csv,0.06,CSV,333.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-13,2026-06-26,,forex_reserves,0,forex_reserves_2026-10-02 (1).xlsx,False
+forex_reserves_2026-10-02 (2).csv,.csv,0.06,CSV,333.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-13,2026-06-26,,forex_reserves,0,forex_reserves_2026-10-02 (1).xlsx,False
+forex_reserves_2026-10-02 (3).csv,.csv,0.06,CSV,333.0,4.0,Date | Reserve_type | Value (USD Million) | Source,2020-02-13,2026-06-26,,forex_reserves,0,forex_reserves_2026-10-02 (1).xlsx,False
+fuel_prices_2026-10-02 (1).xlsx,.xlsx,0.07,Data,174.0,4.0,Date | Fuel_type | Price | Source,2012-01-01,2026-06-01,,fuel_prices,1,fuel_prices_2026-10-02 (1).xlsx,True
+fuel_prices_2026-10-02 (2).xlsx,.xlsx,0.07,Data,174.0,4.0,Date | Fuel_type | Price | Source,2012-01-01,2026-06-01,,fuel_prices,1,fuel_prices_2026-10-02 (1).xlsx,False
+fuel_prices_2026-10-02 (3).xlsx,.xlsx,0.07,Data,174.0,4.0,Date | Fuel_type | Price | Source,2012-01-01,2026-06-01,,fuel_prices,1,fuel_prices_2026-10-02 (1).xlsx,False
+fuel_prices_2026-10-02.xlsx,.xlsx,0.07,Data,174.0,4.0,Date | Fuel_type | Price | Source,2012-01-01,2026-06-01,,fuel_prices,1,fuel_prices_2026-10-02 (1).xlsx,False
+fuel_prices_2026-10-02 (1).csv,.csv,0.03,CSV,174.0,4.0,Date | Fuel_type | Price | Source,2012-01-01,2026-06-01,,fuel_prices,0,fuel_prices_2026-10-02 (1).xlsx,False
+fuel_prices_2026-10-02 (2).csv,.csv,0.03,CSV,174.0,4.0,Date | Fuel_type | Price | Source,2012-01-01,2026-06-01,,fuel_prices,0,fuel_prices_2026-10-02 (1).xlsx,False
+fuel_prices_2026-10-02.csv,.csv,0.03,CSV,174.0,4.0,Date | Fuel_type | Price | Source,2012-01-01,2026-06-01,,fuel_prices,0,fuel_prices_2026-10-02 (1).xlsx,False
+historical_pmi_2026-10-02.xlsx,.xlsx,0.06,Data,137.0,4.0,Date | Sector | PMI Value | Source,2015-01-01,2026-05-01,,historical_pmi,1,historical_pmi_2026-10-02.xlsx,True
+historical_pmi_2026-10-02.csv,.csv,0.02,CSV,137.0,4.0,Date | Sector | PMI Value | Source,2015-01-01,2026-05-01,,historical_pmi,0,historical_pmi_2026-10-02.xlsx,False
+inflation_data_2026-10-02 (1).xlsx,.xlsx,0.06,Data,132.0,4.0,Date | Category | Rate (%) | Source,2015-07-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,True
+inflation_data_2026-10-02 (9).xlsx,.xlsx,0.06,Data,132.0,4.0,Date | Category | Rate (%) | Source,2015-07-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (10).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (11).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (2).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (3).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (4).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (5).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (6).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (7).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (8).xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02.xlsx,.xlsx,0.06,Data,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,1,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (1).csv,.csv,0.02,CSV,132.0,4.0,Date | Category | Rate (%) | Source,2015-07-01,2026-06-29,,inflation_data,0,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (5).csv,.csv,0.02,CSV,132.0,4.0,Date | Category | Rate (%) | Source,2015-07-01,2026-06-29,,inflation_data,0,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (2).csv,.csv,0.02,CSV,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,0,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (3).csv,.csv,0.02,CSV,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,0,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (4).csv,.csv,0.02,CSV,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,0,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02 (6).csv,.csv,0.02,CSV,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,0,inflation_data_2026-10-02 (1).xlsx,False
+inflation_data_2026-10-02.csv,.csv,0.02,CSV,131.0,4.0,Date | Category | Rate (%) | Source,2015-08-01,2026-06-29,,inflation_data,0,inflation_data_2026-10-02 (1).xlsx,False
+international_arrivals_2026-10-02 (1).xlsx,.xlsx,0.07,Data,194.0,4.0,Date | Category | Arrivals | Source,2010-01-01,2026-03-01,,international_arrivals,1,international_arrivals_2026-10-02 (1).xlsx,True
+international_arrivals_2026-10-02 (2).xlsx,.xlsx,0.07,Data,194.0,4.0,Date | Category | Arrivals | Source,2010-01-01,2026-03-01,,international_arrivals,1,international_arrivals_2026-10-02 (1).xlsx,False
+international_arrivals_2026-10-02.xlsx,.xlsx,0.07,Data,194.0,4.0,Date | Category | Arrivals | Source,2010-01-01,2026-03-01,,international_arrivals,1,international_arrivals_2026-10-02 (1).xlsx,False
+international_arrivals_2026-10-02 (3).xlsx,.xlsx,0.07,Data,192.0,4.0,Date | Category | Arrivals | Source,2010-01-01,2025-12-01,,international_arrivals,1,international_arrivals_2026-10-02 (1).xlsx,False
+international_arrivals_2026-10-02 (4).xlsx,.xlsx,0.07,Data,192.0,4.0,Date | Category | Arrivals | Source,2010-01-01,2025-12-01,,international_arrivals,1,international_arrivals_2026-10-02 (1).xlsx,False
+international_arrivals_2026-10-02 (1).csv,.csv,0.03,CSV,194.0,4.0,Date | Category | Arrivals | Source,2010-01-01,2026-03-01,,international_arrivals,0,international_arrivals_2026-10-02 (1).xlsx,False
+international_arrivals_2026-10-02.csv,.csv,0.03,CSV,194.0,4.0,Date | Category | Arrivals | Source,2010-01-01,2026-03-01,,international_arrivals,0,international_arrivals_2026-10-02 (1).xlsx,False
+international_arrivals_2026-10-02 (2).csv,.csv,0.03,CSV,192.0,4.0,Date | Category | Arrivals | Source,2010-01-01,2025-12-01,,international_arrivals,0,international_arrivals_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (1).xlsx,.xlsx,0.33,Data,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,1,liquidity_indicators_2026-10-02 (1).xlsx,True
+liquidity_indicators_2026-10-02 (2).xlsx,.xlsx,0.33,Data,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,1,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (3).xlsx,.xlsx,0.33,Data,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,1,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (4).xlsx,.xlsx,0.33,Data,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,1,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (5).xlsx,.xlsx,0.33,Data,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,1,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (6).xlsx,.xlsx,0.33,Data,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,1,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (7).xlsx,.xlsx,0.33,Data,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,1,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02.xlsx,.xlsx,0.33,Data,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,1,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (1).csv,.csv,0.19,CSV,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,0,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (2).csv,.csv,0.19,CSV,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,0,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02 (3).csv,.csv,0.19,CSV,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,0,liquidity_indicators_2026-10-02 (1).xlsx,False
+liquidity_indicators_2026-10-02.csv,.csv,0.19,CSV,1000.0,4.0,Date | Indicator | Value | Source,2025-06-24,2026-06-25,,liquidity_indicators,0,liquidity_indicators_2026-10-02 (1).xlsx,False
+monetary_policy_indicators_2026-10-02 (1).xlsx,.xlsx,0.04,Data,66.0,4.0,Date | Debt_type | Value (%) | Source,2021-01-01,2026-06-01,,monetary_policy_indicators,1,monetary_policy_indicators_2026-10-02 (1).xlsx,True
+monetary_policy_indicators_2026-10-02.xlsx,.xlsx,0.04,Data,66.0,4.0,Date | Debt_type | Value (%) | Source,2021-01-01,2026-06-01,,monetary_policy_indicators,1,monetary_policy_indicators_2026-10-02 (1).xlsx,False
+monetary_policy_indicators_2026-10-02.csv,.csv,0.01,CSV,66.0,4.0,Date | Debt_type | Value (%) | Source,2021-01-01,2026-06-01,,monetary_policy_indicators,0,monetary_policy_indicators_2026-10-02 (1).xlsx,False
+nse_analysis_20261002_124412.csv,.csv,11.78,,,,,,,"Error tokenizing data. C error: Expected 1 fields in line 4, saw 6
+",nse_analysis_124412,0,nse_analysis_20261002_124412.csv,True
+nse_analysis_20261002_124449.xlsx,.xlsx,51.28,Summary | Data,190419.0,2.0,Generated by Rock Investment Bank | Unnamed: 1,,,,nse_analysis_124449,1,nse_analysis_20261002_124449.xlsx,True
+nse_analysis_20261002_124502.xlsx,.xlsx,51.28,Summary | Data,190419.0,2.0,Generated by Rock Investment Bank | Unnamed: 1,,,,nse_analysis_124502,1,nse_analysis_20261002_124502.xlsx,True
+nse_analysis_20261002_124508.xlsx,.xlsx,51.28,Summary | Data,190419.0,2.0,Generated by Rock Investment Bank | Unnamed: 1,,,,nse_analysis_124508,1,nse_analysis_20261002_124508.xlsx,True
+nse_analysis_20261002_124519.csv,.csv,11.78,,,,,,,"Error tokenizing data. C error: Expected 1 fields in line 4, saw 6
+",nse_analysis_124519,0,nse_analysis_20261002_124519.csv,True
+nse_analysis_20261002_124525.csv,.csv,11.78,,,,,,,"Error tokenizing data. C error: Expected 1 fields in line 4, saw 6
+",nse_analysis_124525,0,nse_analysis_20261002_124525.csv,True
+nse_analysis_20261002_124532.xlsx,.xlsx,51.28,Summary | Data,190419.0,2.0,Generated by Rock Investment Bank | Unnamed: 1,,,,nse_analysis_124532,1,nse_analysis_20261002_124532.xlsx,True
+nse_bond_index_2026-10-02 (1).xlsx,.xlsx,0.06,Data,145.0,4.0,Date | Bond_type | Index Value | Source,2023-09-08,2026-06-26,,nse_bond_index,1,nse_bond_index_2026-10-02 (1).xlsx,True
+nse_bond_index_2026-10-02 (2).xlsx,.xlsx,0.06,Data,145.0,4.0,Date | Bond_type | Index Value | Source,2023-09-08,2026-06-26,,nse_bond_index,1,nse_bond_index_2026-10-02 (1).xlsx,False
+nse_bond_index_2026-10-02 (3).xlsx,.xlsx,0.06,Data,145.0,4.0,Date | Bond_type | Index Value | Source,2023-09-08,2026-06-26,,nse_bond_index,1,nse_bond_index_2026-10-02 (1).xlsx,False
+nse_bond_index_2026-10-02.xlsx,.xlsx,0.06,Data,145.0,4.0,Date | Bond_type | Index Value | Source,2023-09-08,2026-06-26,,nse_bond_index,1,nse_bond_index_2026-10-02 (1).xlsx,False
+nse_bond_index_2026-10-02 (1).csv,.csv,0.03,CSV,145.0,4.0,Date | Bond_type | Index Value | Source,2023-09-08,2026-06-26,,nse_bond_index,0,nse_bond_index_2026-10-02 (1).xlsx,False
+nse_bond_index_2026-10-02.csv,.csv,0.03,CSV,145.0,4.0,Date | Bond_type | Index Value | Source,2023-09-08,2026-06-26,,nse_bond_index,0,nse_bond_index_2026-10-02 (1).xlsx,False
+public_debt_2026-10-02.xlsx,.xlsx,0.2,Data,604.0,4.0,Date | Debt_type | Amount (KES) | Source,1999-09-01,2025-04-01,,public_debt,1,public_debt_2026-10-02.xlsx,True
+public_debt_2026-10-02.csv,.csv,0.11,CSV,604.0,4.0,Date | Debt_type | Amount (KES) | Source,1999-09-01,2025-04-01,,public_debt,0,public_debt_2026-10-02.xlsx,False
+treasury_bills_2026-10-02 (1).xlsx,.xlsx,0.54,Data,1768.0,4.0,Date | Tenor | Rate (%) | Source,2015-01-12,2021-07-19,,treasury_bills,1,treasury_bills_2026-10-02 (1).xlsx,True
+treasury_bills_2026-10-02.xlsx,.xlsx,0.54,Data,1768.0,4.0,Date | Tenor | Rate (%) | Source,2015-01-12,2021-07-19,,treasury_bills,1,treasury_bills_2026-10-02 (1).xlsx,False
+treasury_bills_2026-10-02.csv,.csv,0.3,CSV,1768.0,4.0,Date | Tenor | Rate (%) | Source,2015-01-12,2021-07-19,,treasury_bills,0,treasury_bills_2026-10-02 (1).xlsx,False
+yield_curve_2026-10-02.xlsx,.xlsx,0.02,Data,32.0,3.0,Maturity | Yield (%) | Source,,,,yield_curve,1,yield_curve_2026-10-02.xlsx,True
+yield_curve_2026-10-02.csv,.csv,0.01,CSV,32.0,3.0,Maturity | Yield (%) | Source,,,,yield_curve,0,yield_curve_2026-10-02.xlsx,False

@@ -1,0 +1,15 @@
+{
+  "project": "Rock Investment Intelligence",
+  "primary_source": "Rock Data Plus",
+  "external_market_data_used": false,
+  "database": "C:\\Users\\ADMIN\\Desktop\\Rock_Investment_Outlook_2026\\database\\rock_investment_intelligence.db",
+  "build_started": "2026-10-02T18:03:37.909897",
+  "build_finished": "2026-10-02T18:05:21.496692",
+  "canonical_files_seen": 14,
+  "files_imported_this_run": 14,
+  "rows_seen_this_run": 187398,
+  "new_rows_added_this_run": 187398,
+  "total_database_observations": 187398,
+  "total_datasets": 14,
+  "source_files_registered": 14
+}

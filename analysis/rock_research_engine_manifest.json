@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-10-02T19:11:12.000978",
+  "source": "Rock Data Plus",
+  "external_data_used": false,
+  "database": "C:\\Users\\ADMIN\\Desktop\\Rock_Investment_Outlook_2026\\database\\rock_investment_intelligence.db",
+  "database_observations": 187390,
+  "flattened_observations": 187390,
+  "datasets": [
+    "diaspora_remittances",
+    "exchange_rates",
+    "forex_reserves",
+    "fuel_prices",
+    "historical_pmi",
+    "inflation_data",
+    "international_arrivals",
+    "liquidity_indicators",
+    "monetary_policy_indicators",
+    "nse_analysis",
+    "nse_bond_index",
+    "public_debt",
+    "treasury_bills",
+    "yield_curve"
+  ],
+  "outputs": [
+    "rock_flat_observations.csv",
+    "rock_date_inventory.csv",
+    "rock_numeric_inventory.csv",
+    "rock_research_dataset_summary.csv",
+    "rock_macro_monthly.csv",
+    "rock_nse_monthly.csv",
+    "rock_market_monthly.csv",
+    "rock_market_macro_merged.csv",
+    "rock_market_macro_relationships.csv",
+    "rock_treasury_bills.csv",
+    "rock_nse_bond_index.csv",
+    "rock_yield_curve.csv",
+    "rock_public_debt.csv"
+  ]
+}

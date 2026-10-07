@@ -1,0 +1,15 @@
+﻿dataset,date_field,valid_dates,date_min,date_max
+diaspora_remittances,observed_date,250,2005-07-01 00:00:00,2026-04-01 00:00:00
+exchange_rates,observed_date,1000,2023-02-17 00:00:00,2026-06-25 00:00:00
+forex_reserves,observed_date,334,2020-02-06 00:00:00,2026-06-26 00:00:00
+fuel_prices,observed_date,174,2012-01-01 00:00:00,2026-06-01 00:00:00
+historical_pmi,observed_date,137,2015-01-01 00:00:00,2026-05-01 00:00:00
+inflation_data,observed_date,132,2015-07-01 00:00:00,2026-06-29 00:00:00
+international_arrivals,observed_date,194,2010-01-01 00:00:00,2026-03-01 00:00:00
+liquidity_indicators,observed_date,1000,2025-06-24 00:00:00,2026-06-25 00:00:00
+monetary_policy_indicators,observed_date,66,2021-01-01 00:00:00,2026-06-01 00:00:00
+nse_analysis,observed_date,181554,2017-01-03 00:00:00,2026-06-29 00:00:00
+nse_bond_index,observed_date,145,2023-09-08 00:00:00,2026-06-26 00:00:00
+public_debt,observed_date,604,1999-09-01 00:00:00,2025-04-01 00:00:00
+treasury_bills,observed_date,1768,2015-01-12 00:00:00,2026-06-15 00:00:00
+yield_curve,,0,,

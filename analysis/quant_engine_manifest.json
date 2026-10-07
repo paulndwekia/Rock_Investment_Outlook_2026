@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-10-02T18:37:23.102975",
+  "source": "Rock Data Plus",
+  "external_market_data_used": false,
+  "nse_rows": 181554,
+  "securities_or_series": 74,
+  "nse_start": "2017-01-03",
+  "nse_end": "2026-06-29",
+  "benchmark_series": [
+    "Banking Sector Index",
+    "Bond Turnover",
+    "FTSE NSE Kenya Govt. Bond Index",
+    "NSE 20 Index",
+    "NSE 25",
+    "NSE All share Index (RHS)"
+  ],
+  "outputs": [
+    "security_metrics.csv",
+    "rolling_risk.csv",
+    "benchmark_data.csv",
+    "benchmark_metrics.csv",
+    "benchmark_return_correlations.csv",
+    "foreign_flow_relationships.csv",
+    "market_daily_snapshot.csv",
+    "latest_market_snapshot.csv",
+    "database_dataset_summary.csv"
+  ]
+}

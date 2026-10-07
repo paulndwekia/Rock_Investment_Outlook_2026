@@ -1,0 +1,58 @@
+dataset_name,column_name,dtype,non_null_count,example_value
+diaspora_remittances,amount,float64,250,397.78
+diaspora_remittances,country,str,250,Total
+diaspora_remittances,date,datetime64[us],250,2026-04-01
+diaspora_remittances,source,str,250,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-8D1AC3255A52 | 10/2/2026, 5:04:53 PM | Confidential - redistribution prohibited"
+exchange_rates,currency_pair,str,1000,USD/KES
+exchange_rates,date,datetime64[us],1000,2026-06-25
+exchange_rates,exchange_rate,float64,1000,129.64
+exchange_rates,source,str,1000,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-2927A8518A7F | 10/2/2026, 4:48:53 PM | Confidential - redistribution prohibited"
+forex_reserves,date,datetime64[us],334,2026-06-26
+forex_reserves,reserve_type,str,334,Threshold
+forex_reserves,source,str,334,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-51FE64408BA0 | 10/2/2026, 5:00:13 PM | Confidential - redistribution prohibited"
+forex_reserves,value_usd_million,float64,231,4.0
+fuel_prices,date,datetime64[us],174,2026-06-01
+fuel_prices,fuel_type,str,174,Kerosene (IK)
+fuel_prices,price,float64,174,191.38
+fuel_prices,source,str,174,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-6E42AFF990F3 | 10/2/2026, 5:01:44 PM | Confidential - redistribution prohibited"
+historical_pmi,date,datetime64[us],137,2026-05-01
+historical_pmi,pmi_value,float64,137,46.6
+historical_pmi,sector,str,137,Stanbic PMI
+historical_pmi,source,str,137,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-4200465C354C | 10/2/2026, 4:54:49 PM | Confidential - redistribution prohibited"
+inflation_data,category,str,132,Headline Inflation
+inflation_data,date,datetime64[us],132,2026-06-29
+inflation_data,rate,str,132,6.40%
+inflation_data,source,str,132,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-F504CB30E246 | 10/2/2026, 4:51:24 PM | Confidential - redistribution prohibited"
+international_arrivals,arrivals,str,194,"23,073"
+international_arrivals,category,str,194,MIA
+international_arrivals,date,datetime64[us],194,2026-03-01
+international_arrivals,source,str,194,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-10D83C6082C6 | 10/2/2026, 5:03:19 PM | Confidential - redistribution prohibited"
+liquidity_indicators,date,datetime64[us],1000,2026-06-25
+liquidity_indicators,indicator,str,1000,Daily Volumes (KES Mn)
+liquidity_indicators,source,str,1000,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-336918E23B94 | 10/2/2026, 4:58:43 PM | Confidential - redistribution prohibited"
+liquidity_indicators,value,float64,1000,12230.0
+monetary_policy_indicators,date,datetime64[us],66,2021-01-01
+monetary_policy_indicators,debt_type,str,66,Central Bank Rate
+monetary_policy_indicators,source,str,66,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-6735A19468FD | 10/2/2026, 5:05:43 PM | Confidential - redistribution prohibited"
+monetary_policy_indicators,value,str,66,7.00%
+nse_analysis,generated_by_rock_investment_bank,str,181556,Export Date: 10/2/2026
+nse_analysis,unnamed_1,str,181555,Security
+nse_analysis,unnamed_2,str,181555,Price (KES)
+nse_analysis,unnamed_3,str,181555,Volume
+nse_analysis,unnamed_4,str,181555,Net Foreign Flow
+nse_analysis,unnamed_5,str,181555,Change %
+nse_bond_index,bond_type,str,145,FTSE NSE Kenya Govt Bond Index
+nse_bond_index,date,datetime64[us],145,2026-06-26
+nse_bond_index,index_value,str,145,"1,125.28"
+nse_bond_index,source,str,145,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-1296402E2E26 | 10/2/2026, 4:55:16 PM | Confidential - redistribution prohibited"
+public_debt,amount_kes,str,604,"5,326,268,770,000"
+public_debt,date,datetime64[us],604,2025-04-01
+public_debt,debt_type,str,604,External Debt
+public_debt,source,str,604,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-75518F89AB85 | 10/2/2026, 5:06:25 PM | Confidential - redistribution prohibited"
+treasury_bills,date,datetime64[us],1768,2015-01-12
+treasury_bills,rate,str,1768,8.53%
+treasury_bills,source,str,1768,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-C723C0C70D58 | 10/2/2026, 4:56:35 PM | Confidential - redistribution prohibited"
+treasury_bills,tenor,str,1768,91-Day
+yield_curve,maturity,str,32,91 Day
+yield_curve,source,str,32,"Rock Investment Bank | Licensed to p98001630@gmail.com | Ref RIB-2CBBAFE157A5 | 10/2/2026, 4:57:55 PM | Confidential - redistribution prohibited"
+yield_curve,yield,float64,32,8.83

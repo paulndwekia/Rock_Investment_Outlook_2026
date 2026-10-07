@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-10-03T01:28:01.157581",
+  "source": "Rock Data Plus",
+  "modules": {
+    "treasury_bills": {
+      "source_file": "treasury_bills.xlsx",
+      "clean_file": "clean_treasury_bills.csv",
+      "database_table": "rock_treasury_bills_clean",
+      "columns": [
+        "Date",
+        "Tenor",
+        "Rate (%)"
+      ],
+      "rows": 1768
+    },
+    "nse_bond_index": {
+      "source_file": "nse_bond_index.xlsx",
+      "clean_file": "clean_nse_bond_index.csv",
+      "database_table": "rock_nse_bond_index_clean",
+      "columns": [
+        "Date",
+        "Bond_type",
+        "Index Value"
+      ],
+      "rows": 145
+    },
+    "forex_reserves": {
+      "source_file": "forex_reserves.xlsx",
+      "clean_file": "clean_forex_reserves.csv",
+      "database_table": "rock_forex_reserves_clean",
+      "columns": [
+        "Date",
+        "Reserve_type",
+        "Value (USD Million)"
+      ],
+      "rows": 231
+    },
+    "inflation_data": {
+      "source_file": "inflation_data.xlsx",
+      "clean_file": "clean_inflation.csv",
+      "database_table": "rock_inflation_clean",
+      "columns": [
+        "Date",
+        "Category",
+        "Rate (%)"
+      ],
+      "rows": 132
+    }
+  }
+}

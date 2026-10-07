@@ -1,0 +1,54 @@
+﻿# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Local browser/session files
+.rock_browser/
+.rock_chrome/
+.rock_session/
+
+# Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Logs
+*.log
+logs/
+
+# OS / editor
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Historical code backups
+*.before_*
+*backup*
+*rollback*
+
+# Old repair/fix/patch scripts
+scripts/*repair*
+scripts/*fix*
+scripts/*patch*
+scripts/*rollback*
+
+# Old diagnostic/audit text reports
+analysis/*_report.txt
+analysis/*_diagnostics.*
+analysis/*_audit.*
+analysis/*_error_recovery*
+analysis/*known_good*
+analysis/*rollback*

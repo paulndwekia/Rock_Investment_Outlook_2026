@@ -1,0 +1,20 @@
+﻿section,metric,value
+risk,numeric_fields,"['Observations', 'First_Price', 'Last_Price', 'Total_Return', 'Annualized_Return', 'Annualized_Volatility', 'Maximum_Drawdown', 'Average_Volume', 'Total_Net_Foreign_Flow', 'Positive_Return_Days']"
+risk,Maximum_Drawdown,-1.0
+treasury_bills,latest_date,2026-06-15
+treasury_bills,91d_364d_spread,0.15999999999999837
+yield_curve,points,7
+yield_curve,short_maturity,1 Year
+yield_curve,short_yield,8.99
+yield_curve,long_maturity,30 Years
+yield_curve,long_yield,13.43
+yield_curve,long_short_spread,4.4399999999999995
+bond_index,observations,145
+bond_index,latest_value,1125.28
+bond_index,total_sample_return,0.12528000000000006
+inflation,latest_date,2026-06-29
+inflation,latest_value,6.4
+foreign_flows,numeric_fields,"['Observations', 'Foreign_Flow_Return_Correlation', 'P_Value']"
+scenario_framework,curve_slope,4.4399999999999995
+scenario_framework,tbill_91d_364d_spread,0.15999999999999837
+scenario_framework,latest_inflation,6.4

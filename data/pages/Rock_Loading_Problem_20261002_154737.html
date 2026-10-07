@@ -1,0 +1,838 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" type="image/png" href="/rock-logo.png">
+<title>Repository — Rock Data Plus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-950:#FFFFFF;
+  --navy-900:#FAF7F0;
+  --navy-800:#F2ECDA;
+  --navy-700:#E9DEBD;
+  --navy-600:#D8CFA9;
+  --gold-500:#D6A54C;
+  --gold-300:#EAC97A;
+  --gold-100:#F7E9C5;
+  --gold-700:#A6741F;
+  --ivory-100:#1B2247;
+  --ivory-200:#2B3968;
+  --slate-400:#6B7299;
+  --slate-300:#4B5480;
+  --line: rgba(214,165,76,0.4);
+  --radius-frame: 18px;
+  --ease: cubic-bezier(.16,.84,.44,1);
+
+  --cream:#FBF7EC;
+  --cream-dim:#F1EADA;
+  --paper-line: rgba(27,34,71,0.10);
+  --ink-900:#1B2247;
+  --ink-600:#4A5379;
+  --green-600:#2F7A4F;
+  --red-600:#B23A3A;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--navy-950);
+  color:var(--ivory-100);
+  font-family:'IBM Plex Sans', sans-serif;
+  overflow-x:hidden;
+  position:relative;
+}
+
+
+.grain{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  opacity:.035; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Layout shell ---------- */
+.wrap{
+  position:relative;
+  z-index:2;
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 32px;
+}
+
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  padding:26px 0;
+  border-bottom:1px solid var(--line);
+  opacity:0;
+  transform:translateY(-14px);
+  animation:settle .9s var(--ease) forwards .1s;
+  flex-wrap:wrap;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  text-decoration:none;
+}
+.brand img{
+  height:34px;
+  width:auto;
+  display:block;
+}
+.brand .div{
+  width:1px; height:22px; background:var(--line);
+}
+.brand .tag{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--slate-300);
+}
+
+.site-nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.site-nav a{
+  position:relative;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--slate-300);
+  text-decoration:none;
+  padding:9px 16px;
+  border-radius:999px;
+  transition:color .2s, background .2s;
+}
+.site-nav a:hover{
+  color:var(--ivory-100);
+  background:rgba(214,165,76,0.06);
+}
+.site-nav a.active{
+  color:var(--gold-700);
+  background:rgba(214,165,76,0.1);
+  border:1px solid var(--line);
+  padding:8px 15px;
+}
+
+nav.status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;
+  letter-spacing:.08em;
+  color:var(--slate-300);
+  padding:7px 14px 7px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(214,165,76,0.04);
+  white-space:nowrap;
+}
+.pulse-dot{
+  width:7px; height:7px; border-radius:50%;
+  background:var(--gold-300);
+  box-shadow:0 0 0 0 rgba(234,201,122,.6);
+  animation:pulse 2.2s ease-out infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(234,201,122,.45);}
+  70%{box-shadow:0 0 0 9px rgba(234,201,122,0);}
+  100%{box-shadow:0 0 0 0 rgba(234,201,122,0);}
+}
+
+@keyframes settle{
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* ---------- Hero (shared type rules) ---------- */
+.eyebrow{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--gold-700);
+  margin-bottom:22px;
+  opacity:0;
+  animation:rise .8s var(--ease) forwards .25s;
+}
+.eyebrow::before{
+  content:"";
+  width:26px; height:1px;
+  background:var(--gold-500);
+  display:inline-block;
+}
+h1{
+  font-family:'Fraunces', serif;
+  font-weight:500;
+  font-size:clamp(40px, 6vw, 74px);
+  line-height:1.04;
+  letter-spacing:-.01em;
+  margin:0 0 22px;
+  max-width:16ch;
+  opacity:0;
+  animation:rise .9s var(--ease) forwards .38s;
+}
+h1 em{
+  font-style:italic;
+  font-weight:500;
+  color:var(--gold-700);
+}
+.lede{
+  font-size:17px;
+  line-height:1.7;
+  color:var(--slate-300);
+  max-width:56ch;
+  margin:0 0 34px;
+  opacity:0;
+  animation:rise .9s var(--ease) forwards .5s;
+}
+.hero-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  opacity:0;
+  animation:rise .9s var(--ease) forwards .62s;
+}
+.chip{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  letter-spacing:.04em;
+  color:var(--ivory-200);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:9px 14px;
+  background:linear-gradient(180deg, rgba(214,165,76,0.06), transparent);
+}
+.chip b{ color:var(--gold-700); font-weight:500; }
+
+@keyframes rise{
+  to{opacity:1; transform:translateY(0);}
+  from{transform:translateY(16px);}
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12.5px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  text-decoration:none;
+  padding:14px 22px;
+  border-radius:9px;
+  transition:transform .25s var(--ease), box-shadow .25s var(--ease), background .25s;
+}
+.btn-primary{
+  color:var(--ink-900);
+  background:linear-gradient(135deg, var(--gold-300), var(--gold-500));
+  box-shadow:0 12px 30px -10px rgba(214,165,76,0.55);
+}
+.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 16px 36px -10px rgba(214,165,76,0.7); }
+.btn-ghost{
+  color:var(--ivory-200);
+  border:1px solid var(--line);
+  background:rgba(214,165,76,0.03);
+}
+.btn-ghost:hover{ border-color:var(--gold-300); color:var(--gold-700); }
+
+/* ---------- Footer ---------- */
+footer{
+  border-top:1px solid var(--line);
+  padding:26px 0 46px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+footer .mark{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11.5px;
+  letter-spacing:.06em;
+  color:var(--slate-400);
+}
+footer .mark b{ color:var(--slate-300); font-weight:500;}
+footer a{
+  color:var(--gold-700);
+  text-decoration:none;
+  border-bottom:1px solid rgba(214,165,76,0.35);
+  transition:border-color .2s;
+}
+footer a:hover{ border-color:var(--gold-300); }
+footer .foot-nav{
+  display:flex;
+  gap:18px;
+}
+footer .foot-nav a{ border-bottom:none; color:var(--slate-300); }
+footer .foot-nav a:hover{ color:var(--gold-700); }
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration:0.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.001ms !important;
+  }
+}
+
+:focus-visible{
+  outline:2px solid var(--gold-300);
+  outline-offset:3px;
+}
+
+@media (max-width:640px){
+  .site-nav{ order:3; width:100%; justify-content:flex-start; padding-top:6px; }
+}
+
+/* ================= Market Pulse (live data strip) ================= */
+.market-pulse{
+  position:relative;
+  z-index:2;
+  border-bottom:1px solid var(--line);
+  background:rgba(214,165,76,0.035);
+}
+.pulse-track{
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 32px;
+  display:flex;
+  align-items:center;
+  gap:0;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.pulse-track::-webkit-scrollbar{ display:none; }
+.pulse-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--gold-700);
+  padding:12px 18px 12px 0;
+  white-space:nowrap;
+  border-right:1px dashed var(--line);
+  margin-right:18px;
+}
+.pulse-item{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  padding:12px 18px;
+  white-space:nowrap;
+  border-right:1px dashed var(--line);
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12.5px;
+}
+.pulse-item:last-child{ border-right:none; }
+.pulse-item .sym{ color:var(--slate-300); letter-spacing:.04em; }
+.pulse-item .val{ color:var(--ivory-100); font-weight:500; }
+.pulse-item .chg{ font-size:11px; }
+.pulse-item .chg.up{ color:#7BC79A; }
+.pulse-item .chg.down{ color:#E08787; }
+.pulse-item.skeleton .val{ color:var(--slate-400); }
+.pulse-updated{
+  margin-left:auto;
+  padding-left:18px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  color:var(--slate-400);
+  white-space:nowrap;
+}
+
+/* ================= Light "paper" panels ================= */
+.panel-light{
+  position:relative;
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+  margin-right:calc(50% - 50vw);
+  background:var(--cream);
+  color:var(--ink-900);
+}
+.panel-light .wrap{ padding-top:64px; padding-bottom:64px; }
+.panel-light .eyebrow{ color:var(--green-600); }
+.panel-light .eyebrow::before{ background:var(--green-600); }
+
+.section-head{
+  max-width:640px;
+  margin:0 0 44px;
+}
+.section-head h2{
+  font-family:'Fraunces', serif;
+  font-weight:500;
+  font-size:clamp(28px, 3.6vw, 38px);
+  line-height:1.15;
+  margin:0 0 12px;
+  color:var(--ink-900);
+}
+.section-head p{
+  font-size:15px;
+  line-height:1.7;
+  color:var(--ink-600);
+  margin:0;
+}
+.section-head.centered{ margin-left:auto; margin-right:auto; text-align:center; }
+
+/* ---------- Stats bar ---------- */
+.stats-bar{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:1px;
+  background:var(--paper-line);
+  border:1px solid var(--paper-line);
+  border-radius:14px;
+  overflow:hidden;
+}
+.stat{
+  background:#fff;
+  padding:26px 20px;
+  text-align:center;
+}
+.stat .num{
+  font-family:'Fraunces', serif;
+  font-weight:600;
+  font-size:clamp(24px, 3vw, 32px);
+  color:var(--ink-900);
+  display:block;
+}
+.stat .lbl{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--ink-600);
+  margin-top:6px;
+  display:block;
+}
+@media (max-width:760px){
+  .stats-bar{ grid-template-columns:repeat(2, 1fr); }
+}
+
+/* ---------- Steps (How it works) ---------- */
+.steps-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:24px;
+}
+.step-card{
+  background:#fff;
+  border:1px solid var(--paper-line);
+  border-radius:14px;
+  padding:28px 24px;
+}
+.step-card .step-num{
+  width:34px; height:34px;
+  border-radius:50%;
+  background:var(--ink-900);
+  color:var(--gold-300);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  margin-bottom:16px;
+}
+.step-card h3{
+  font-family:'Fraunces', serif;
+  font-weight:500;
+  font-size:18px;
+  margin:0 0 8px;
+  color:var(--ink-900);
+}
+.step-card p{
+  font-size:14px;
+  line-height:1.65;
+  color:var(--ink-600);
+  margin:0;
+}
+@media (max-width:820px){ .steps-grid{ grid-template-columns:1fr; } }
+
+/* ---------- Testimonials ---------- */
+.testimonial-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:22px;
+}
+.testimonial-card{
+  background:#fff;
+  border:1px solid var(--paper-line);
+  border-radius:14px;
+  padding:26px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.testimonial-card .quote{
+  font-family:'Fraunces', serif;
+  font-style:italic;
+  font-size:16px;
+  line-height:1.6;
+  color:var(--ink-900);
+  margin:0;
+}
+.testimonial-card .who{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:auto;
+}
+.testimonial-card .avatar{
+  width:34px; height:34px;
+  border-radius:50%;
+  background:linear-gradient(135deg, var(--gold-300), var(--gold-500));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  font-weight:600;
+  color:var(--ink-900);
+}
+.testimonial-card .who .name{
+  font-size:13px;
+  font-weight:600;
+  color:var(--ink-900);
+  display:block;
+}
+.testimonial-card .who .role{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  color:var(--ink-600);
+  letter-spacing:.03em;
+}
+@media (max-width:820px){ .testimonial-grid{ grid-template-columns:1fr; } }
+
+/* ---------- FAQ ---------- */
+.faq-list{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  background:var(--paper-line);
+  border:1px solid var(--paper-line);
+  border-radius:14px;
+  overflow:hidden;
+}
+.faq-list details{
+  background:#fff;
+  padding:20px 24px;
+}
+.faq-list summary{
+  cursor:pointer;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  font-size:15px;
+  font-weight:500;
+  color:var(--ink-900);
+}
+.faq-list summary::-webkit-details-marker{ display:none; }
+.faq-list summary::after{
+  content:"+";
+  font-family:'IBM Plex Mono', monospace;
+  font-size:18px;
+  color:var(--green-600);
+  flex-shrink:0;
+  transition:transform .2s;
+}
+.faq-list details[open] summary::after{ content:"–"; }
+.faq-list p{
+  margin:14px 0 0;
+  font-size:14px;
+  line-height:1.7;
+  color:var(--ink-600);
+  max-width:70ch;
+}
+
+/* ---------- Data-source badges (honesty about live feeds) ---------- */
+.source-badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.source-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:.04em;
+  color:var(--ink-600);
+  background:#fff;
+  border:1px solid var(--paper-line);
+  border-radius:999px;
+  padding:8px 14px;
+}
+.source-badge .dot{ width:6px; height:6px; border-radius:50%; background:var(--green-600); }
+
+/* ---------- Newsletter / closing CTA on dark ---------- */
+.cta-band{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:24px;
+  padding:44px 40px;
+  margin:70px 0;
+  border-radius:18px;
+  background:linear-gradient(135deg, rgba(214,165,76,0.14), rgba(214,165,76,0.02));
+  border:1px solid var(--line);
+}
+.cta-band h3{
+  font-family:'Fraunces', serif;
+  font-weight:500;
+  font-style:italic;
+  font-size:24px;
+  margin:0 0 6px;
+  color:var(--ivory-100);
+}
+.cta-band p{ margin:0; color:var(--slate-300); font-size:14.5px; }
+.cta-band-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+/* ================= Status strip (date + live market hours) ================= */
+.status-strip{
+  position:relative;
+  z-index:2;
+  border-bottom:1px solid var(--line);
+  background:rgba(27,34,71,0.035);
+}
+.status-strip .wrap{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:10px 32px;
+  flex-wrap:wrap;
+}
+.status-date{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--slate-300);
+}
+.status-market{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.status-market .dot{
+  width:7px; height:7px; border-radius:50%;
+  flex-shrink:0;
+}
+.status-market.open .dot{ background:#7BC79A; box-shadow:0 0 0 0 rgba(123,199,154,.6); animation:pulse-green 2.2s ease-out infinite; }
+.status-market.closed .dot{ background:#E08787; }
+.status-market.open{ color:#7BC79A; }
+.status-market.closed{ color:#E08787; }
+@keyframes pulse-green{
+  0%{box-shadow:0 0 0 0 rgba(123,199,154,.45);}
+  70%{box-shadow:0 0 0 8px rgba(123,199,154,0);}
+  100%{box-shadow:0 0 0 0 rgba(123,199,154,0);}
+}
+
+/* ---------- Subtle hover elevation for card components ---------- */
+.step-card, .testimonial-card, .stat{
+  transition:transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.step-card:hover, .testimonial-card:hover, .stat:hover{
+  transform:translateY(-3px);
+  box-shadow:0 14px 28px -16px rgba(27,34,71,0.22);
+}
+
+
+</style>
+<style>
+  /* ---------- Embedded live app (the real rockstar-nse-viz app — sign-in AND, once
+     you're in, the full dashboard render inside this same window) ---------- */
+  .auth-frame-wrap{
+    width:100vw;
+    margin-left:calc(50% - 50vw);
+    margin-right:calc(50% - 50vw);
+    margin-top:24px;
+    margin-bottom:14px;
+    opacity:0;
+    animation:rise .9s var(--ease) forwards .5s;
+    background:linear-gradient(155deg, var(--gold-300), var(--navy-700) 28%, var(--navy-800) 60%, var(--gold-500) 100%);
+    padding:2px 0;
+    text-align:left;
+    position:relative;
+  }
+  .frame-corner{
+    position:absolute;
+    width:34px; height:34px;
+    border:1.5px solid var(--gold-500);
+    opacity:.9;
+    z-index:3;
+  }
+  .frame-corner.tl{top:14px; left:14px; border-right:none; border-bottom:none;}
+  .frame-corner.br{bottom:14px; right:14px; border-left:none; border-top:none;}
+
+  .auth-frame-inner{
+    background:var(--navy-900);
+    overflow:hidden;
+  }
+  .auth-frame-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:13px 24px;
+    background:linear-gradient(180deg, rgba(37,46,90,0.6), rgba(18,22,43,0.4));
+    border-bottom:1px solid var(--line);
+  }
+  .auth-frame-bar .dots{ display:flex; gap:7px; }
+  .auth-frame-bar .dots span{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--navy-600);
+  }
+  .auth-frame-bar .url{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--slate-300);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .auth-frame-bar .url .lock{ color:var(--gold-300); }
+  .auth-frame-bar .live{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.1em;
+    color:var(--gold-700);
+    display:flex; align-items:center; gap:6px;
+  }
+
+  .auth-frame-holder{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    background:var(--navy-950);
+  }
+  .auth-frame-holder iframe{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+  }
+  .auth-frame-loading{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    color:var(--slate-300);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    background:var(--navy-950);
+    transition:opacity .6s var(--ease);
+  }
+  .auth-frame-loading.hide{ opacity:0; pointer-events:none; }
+  .spinner-gem{
+    width:30px; height:30px;
+    border:1.5px solid var(--line);
+    border-top-color:var(--gold-300);
+    border-radius:4px;
+    transform:rotate(45deg);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(405deg); } }
+
+  @media (max-width:640px){
+    .auth-frame-holder{ aspect-ratio:9/13; }
+  }
+
+  .auth-fallback{
+    max-width:560px;
+    margin:0 auto 70px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--slate-400);
+    text-align:center;
+    opacity:0;
+    animation:rise .9s var(--ease) forwards .65s;
+  }
+  .auth-fallback a{
+    color:var(--gold-700);
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <header>
+      <a class="brand" href="index.html">
+        <img src="data:image/png;base64,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" alt="Rock Data Plus">
+        <div class="div" aria-hidden="true"></div>
+        <span class="tag">Rock Data Plus</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="repository.html" class="active">Repository</a>
+        <a href="research.html">Research</a>
+        <a href="contact.html">Contact Us</a>
+      </nav>
+      
+    </header>
+  </div>
+
+  <div class="auth-frame-wrap">
+      <span class="frame-corner tl" aria-hidden="true"></span>
+      <span class="frame-corner br" aria-hidden="true"></span>
+      <div class="auth-frame-inner">
+        <div class="auth-frame-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="url"><span class="lock">●</span>ROCK DATA PLUS</div>
+          <div class="live"><span class="pulse-dot" aria-hidden="true"></span>LIVE</div>
+        </div>
+        <div class="auth-frame-holder">
+          <div class="auth-frame-loading hide" id="authLoading">
+            <div class="spinner-gem" aria-hidden="true"></div>
+            <span>Loading sign-in…</span>
+          </div>
+          <iframe src="https://rockstar-nse-viz.lovable.app/auth" title="Rock Data Plus — Console Sign In" loading="eager" onload="document.getElementById('authLoading').classList.add('hide')" referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+   <!-- <p class="auth-fallback">Form not loading, or stuck in a redirect loop? — <a href="https://rockstar-nse-viz.lovable.app/auth" target="_blank" rel="noopener">open it directly in a new tab ↗</a> instead.</p> -->
+
+    <footer>
+      <div class="mark"><b>Rock Data Plus</b> — data, cut to clarity.</div>
+      <div class="foot-nav">
+        <a href="index.html">Home</a>
+        <a href="repository.html">Repository</a>
+        <a href="research.html">Research</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </footer>
+  </div>
+
+
+</body></html>
