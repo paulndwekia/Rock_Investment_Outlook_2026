@@ -148,6 +148,7 @@ export default function Dashboard() {
   useEffect(() => { void refresh(); }, [refresh]);
 
   const chartData = useMemo(() => (data.market_series ?? []).map((point) => ({
+    observed_at: point.observed_at,
     date: new Date(point.observed_at).toLocaleDateString("en-KE", { day: "2-digit", month: "short" }),
     dataset: point.dataset,
     series: point.series,
@@ -261,7 +262,18 @@ export default function Dashboard() {
                   <CartesianGrid vertical={false} stroke="#EEECE6" />
                   <XAxis dataKey="date" tick={{ fill: "#858B86", fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={24} />
                   <YAxis tick={{ fill: "#858B86", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ border: "1px solid #E7E3DA", borderRadius: 10, fontSize: 12 }} formatter={(value) => [Number(value).toLocaleString("en-KE"), "Observed value"]} />
+                  <Tooltip
+                    contentStyle={{ border: "1px solid #E7E3DA", borderRadius: 10, fontSize: 12 }}
+                    labelFormatter={(label, payload) => {
+                      const observedAt = payload?.[0]?.payload?.observed_at as string | undefined;
+                      return observedAt ? dateLabel(observedAt) : String(label ?? "");
+                    }}
+                    formatter={(value, _name, item) => {
+                      const point = item.payload as { series?: string; unit?: string | null };
+                      const unit = point.unit ? ` ${point.unit}` : "";
+                      return [`${Number(value).toLocaleString("en-KE")}${unit}`, point.series ?? "Observed value"];
+                    }}
+                  />
                   <Area type="monotone" dataKey="value" stroke="#A9894B" strokeWidth={2} fill="url(#marketGold)" connectNulls={false} />
                 </AreaChart>
               </ResponsiveContainer> : <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-[#E5E1D8] bg-[#FAF9F6] px-6 text-center">
