@@ -5,10 +5,11 @@
 - Public dashboard: https://kenya-investment-intelligence.vercel.app
 - Hosting: Vercel
 - Build status: successful
-- Data service: not yet configured
-- Market figures: intentionally withheld until an approved source feed is connected
+- Data service: official public National Treasury/PDMO JSON feeds connected as a fallback
+- Market coverage: domestic and external debt stocks, debt service and annual macroeconomic indicators
+- Market gaps: NSE share prices and secondary-market bond yields still require separate approved sources
 
-The current Vercel deployment was created from a dashboard-only source snapshot. The Vercel GitHub integration has not yet been connected to this repository, so new commits do not automatically trigger deployments yet.
+The current Vercel deployment was created from a dashboard-only source snapshot. The Vercel GitHub integration has not yet been connected to this repository, so new commits do not automatically trigger deployments yet. The feature branch must be deployed after its checks pass.
 
 A Next.js dashboard for Kenyan equities, fixed income, macroeconomic research and risk analysis.
 
@@ -29,7 +30,7 @@ Open http://localhost:3000.
 
 ## Data connection
 
-Set `DATA_API_URL` to the read-only FastAPI service in `../ingestion_service`. The browser never connects directly to PostgreSQL. If the service is not configured, the dashboard displays a clear empty state rather than sample or fabricated figures.
+Set `DATA_API_URL` and `DATA_API_TOKEN` as server-side Vercel environment variables to use the read-only FastAPI service in `../ingestion_service`. The browser never connects directly to PostgreSQL. When the authorised service is unavailable or not configured, the dashboard falls back to public PDMO JSON datasets, preserving the original reporting period, units and source links. If a source is unavailable, it is labelled unavailable rather than replaced with fabricated figures.
 
 ## Deploy to Vercel
 
@@ -39,6 +40,8 @@ Create a Vercel project from this GitHub repository and set the Root Directory t
 
 - The original Streamlit research application remains in `website/`.
 - The research calculations and source data are not copied into the public frontend.
+- The PDMO adapter retrieves official JSON downloads from the National Treasury and displays source attribution and original-source links. Wider reuse remains subject to the source owner’s terms; the availability of a download does not itself grant unrestricted redistribution rights.
+- Rock Data Plus remains disconnected pending Rock Investment Bank’s written permission and agreed access terms.
 - Public deployment must only expose datasets that are approved for display and redistribution.
 - Review the draft Terms and Privacy pages and complete their operating details before public launch.
 
