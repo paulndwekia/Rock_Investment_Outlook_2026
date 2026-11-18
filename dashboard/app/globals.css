@@ -1,6 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #121A23;
+  --color-paper: #F5F4F0;
+  --color-gold: #B89552;
+  --color-goldSoft: #E8D9B8;
+  --color-positive: #237A5A;
+  --color-negative: #B34D4D;
+  --color-muted: #77818A;
+  --shadow-soft: 0 18px 50px rgba(26, 32, 38, .07);
+}
 
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
