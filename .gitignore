@@ -52,3 +52,17 @@ analysis/*_audit.*
 analysis/*_error_recovery*
 analysis/*known_good*
 analysis/*rollback*
+
+# Private research exports and local stores (prevents new untracked files;
+# already tracked content must be removed separately with a reviewed cleanup)
+data/incoming/
+data/canonical/
+data/archive/
+data/pages/
+data/raw/
+data/processed/
+database/*.db
+database/*.db-*
+.rock_browser/
+.rock_chrome/
+.rock_session/
