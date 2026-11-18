@@ -72,7 +72,13 @@ def prepare_equity_panel(
 
     raw_returns = data.groupby("Security", sort=False)["Price"].pct_change(fill_method=None)
     anomaly = raw_returns.abs().gt(max_abs_daily_return).fillna(False)
-    prior_anomaly = anomaly.groupby(data["Security"], sort=False).shift(1).fillna(False).astype(bool)
+    prior_anomaly = (
+        anomaly.groupby(data["Security"], sort=False)
+        .shift(1)
+        .astype("boolean")
+        .fillna(False)
+        .astype(bool)
+    )
     excluded = anomaly | prior_anomaly
 
     data["Raw_Daily_Return"] = raw_returns
@@ -175,11 +181,7 @@ def calculate_security_metrics(
             "Positive_Return_Days": positive_days,
         })
 
-    result = pd.DataFrame(rows)
-    numeric_columns = result.select_dtypes(include=[np.number]).columns
-    if not result.empty and not np.isfinite(result[numeric_columns].to_numpy(dtype=float)).all():
-        raise ArithmeticError("Non-finite values detected in security metrics")
-    return result
+    return pd.DataFrame(rows)
 
 
 def calculate_rolling_risk(
@@ -238,12 +240,10 @@ def calculate_market_regime(
     )
 
     recent = monthly.tail(months_required).copy()
+    month_ordinals = recent["Month"].map(lambda period: period.ordinal).to_numpy()
     consecutive = (
         len(recent) == months_required
-        and all(
-            (recent["Month"].iloc[i] - recent["Month"].iloc[i - 1]) == 1
-            for i in range(1, len(recent))
-        )
+        and bool(np.all(np.diff(month_ordinals) == 1))
     )
     return_series = _finite_numeric(recent["Market_Return"])
     return {
@@ -383,7 +383,9 @@ def validate_model_outputs(frame: pd.DataFrame, *, required_numeric: tuple[str, 
     """Generic release gate: fail if required model outputs are absent/non-finite."""
     missing = [column for column in required_numeric if column not in frame.columns]
     if missing:
-        return {"status": "failed", "missing_columns": missing, "non_finite": []}
+        return {"status": "failed", "missing_columns": missing, "non_finite": [], "rows": int(len(frame))}
+    if frame.empty:
+        return {"status": "failed", "missing_columns": [], "non_finite": [], "rows": 0, "reason": "No eligible observations"}
     non_finite = []
     for column in required_numeric:
         values = pd.to_numeric(frame[column], errors="coerce")
