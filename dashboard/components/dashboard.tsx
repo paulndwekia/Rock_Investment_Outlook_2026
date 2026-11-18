@@ -146,7 +146,7 @@ export default function Dashboard() {
           </div>
         </motion.section>
 
-        <section className="mt-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        {active === "Overview" ? (<>\n        <section className="mt-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[.16em] text-[#9A8A68]">The market at a glance</p>
             <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-[#1B252D]">Research snapshot</h2>
@@ -230,6 +230,29 @@ export default function Dashboard() {
           </button>)}
         </section>
 
+        </>) : (
+          <section className="mt-8 space-y-5">
+            {(() => { const content = sectionCopy[active]; return <>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[.16em] text-[#9A8A68]">{content.kicker}</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#1B252D]">{content.title}</h2>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-[#68726E]">{content.body}</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {content.topics.map((topic, index) => <div key={topic} className="rounded-xl border border-[#E7E3DA] bg-white p-5 shadow-soft">
+                  <p className="text-[10px] font-semibold uppercase tracking-[.16em] text-[#A08A5D]">Research area</p>
+                  <h3 className="mt-2 text-sm font-semibold text-[#29343B]">{topic}</h3>
+                  <p className="mt-2 text-xs leading-5 text-[#858B86]">Observations and analytical outputs will appear here once the authorised source data is available.</p>
+                </div>)}
+              </div>
+              <div className="rounded-xl border border-[#E8DCC0] bg-[#FBF8F0] p-5">
+                <p className="text-sm font-semibold text-[#4C412C]">A note on the data</p>
+                <p className="mt-2 text-xs leading-6 text-[#746B5B]">{content.note}</p>
+                <p className="mt-3 text-[11px] text-[#887A61]">Current feed status: {connected ? "connected" : "awaiting verified source connection"}.</p>
+              </div>
+            </>; })()}
+          </section>
+        )}
         <footer className="mt-10 flex flex-col justify-between gap-3 border-t border-[#E3DFD6] pt-5 text-[10px] leading-5 text-[#929791] sm:flex-row">
           <p>Kenya Investment Intelligence · Independent research platform</p>
           <div className="flex gap-4"><a href="/terms" className="hover:text-[#5D503A]">Terms of use</a><a href="/privacy" className="hover:text-[#5D503A]">Privacy</a><a href="https://github.com/paulndwekia/Rock_Investment_Outlook_2026" target="_blank" rel="noreferrer" className="hover:text-[#5D503A]">Project repository</a></div>
