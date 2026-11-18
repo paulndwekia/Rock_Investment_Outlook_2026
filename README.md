@@ -1,5 +1,22 @@
 # Kenya Investment Intelligence
 
+## Current website and project status
+
+The project now has two connected but distinct application layers:
+
+- **Research application:** the original Python/Streamlit environment in `website/`, used for the existing quantitative research workflow.
+- **Public dashboard:** a Next.js application in `dashboard/`, designed as a cleaner web research terminal for equities, fixed income, macro indicators, risk and source provenance.
+
+**Current dashboard:** https://kenya-investment-intelligence.vercel.app
+
+The deployed dashboard build is ready. It intentionally shows an empty data state until an approved data service is configured. It does not publish simulated figures or assume that Rock Data Plus exports may be redistributed.
+
+The dashboard source and ingestion-service work are being reviewed in [Pull Request #1](https://github.com/paulndwekia/Rock_Investment_Outlook_2026/pull/1). Automated checks cover the Next.js build and Python importer tests.
+
+> **Data permission warning:** this repository currently contains historical research extracts and exported datasets. The report notes that raw Rock Data Plus records should only be redistributed where the source licence permits it. Repository visibility and Git history must be reviewed before any public redistribution. The new ignore rules do not remove files that were already committed.
+
+---
+
 ## A Kenyan Market Research, Risk and Investment Outlook Platform
 
 **Kenya Investment Intelligence** is a quantitative research platform designed to bring Kenyan equity, macroeconomic, fixed-income and risk analysis into one interactive research environment.
