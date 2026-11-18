@@ -11,11 +11,15 @@
 
 The current Vercel deployment was created from a dashboard-only source snapshot. The Vercel GitHub integration has not yet been connected to this repository, so new commits do not automatically trigger deployments yet. The feature branch must be deployed after its checks pass.
 
-A Next.js dashboard for Kenyan equities, fixed income, macroeconomic research and risk analysis.
+A Next.js 16 dashboard for Kenyan equities, fixed income, macroeconomic research and risk analysis.
 
 ## Design direction
 
 A restrained gold-and-ink visual system with warm neutral surfaces, readable data tables and quiet motion. The interface is designed to feel like a working research terminal rather than a promotional landing page. It intentionally does not seed itself with invented market values.
+
+## Runtime and dependencies
+
+The dashboard uses Next.js 16, React 19, Motion and Recharts 3. CI runs on Node.js 22, and the deployment requires Node.js 20.9 or newer.
 
 ## Run locally
 
