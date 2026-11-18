@@ -1,5 +1,15 @@
 # Kenya Investment Intelligence — Dashboard
 
+## Deployment status
+
+- Public dashboard: https://kenya-investment-intelligence.vercel.app
+- Hosting: Vercel
+- Build status: successful
+- Data service: not yet configured
+- Market figures: intentionally withheld until an approved source feed is connected
+
+The current Vercel deployment was created from a dashboard-only source snapshot. The Vercel GitHub integration has not yet been connected to this repository, so new commits do not automatically trigger deployments yet.
+
 A Next.js dashboard for Kenyan equities, fixed income, macroeconomic research and risk analysis.
 
 ## Design direction
