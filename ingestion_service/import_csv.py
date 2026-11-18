@@ -145,6 +145,14 @@ def parse_numeric_value(raw_value):
     return value
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source_file:
+        for chunk in iter(lambda: source_file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def main():
     args = parse_args()
     if not args.approved_for_display:
@@ -160,8 +168,7 @@ def main():
     if not args.file.is_file():
         raise SystemExit(f"Source file not found: {args.file}")
 
-    file_bytes = args.file.read_bytes()
-    file_hash = hashlib.sha256(file_bytes).hexdigest()
+    file_hash = sha256_file(args.file)
 
     try:
         headers, rows = open_source_rows(args.file, args.sheet)
