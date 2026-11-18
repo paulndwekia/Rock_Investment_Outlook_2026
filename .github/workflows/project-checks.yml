@@ -32,6 +32,9 @@ jobs:
       - name: Install dashboard dependencies
         working-directory: dashboard
         run: npm install --no-audit --no-fund
+      - name: Test public data normalisation
+        working-directory: dashboard
+        run: npm run test:public-data
       - name: Build dashboard
         working-directory: dashboard
         env:
