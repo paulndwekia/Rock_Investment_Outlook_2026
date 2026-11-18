@@ -70,6 +70,16 @@ def overview(_: bool = Depends(verify_read_token)):
                 FROM market_observations
                 GROUP BY dataset ORDER BY dataset
             """).fetchall()
+            available_series = conn.execute("""
+                SELECT dataset, series, unit,
+                       COUNT(*)::bigint AS observations,
+                       MIN(observed_at) AS first_observed_at,
+                       MAX(observed_at) AS last_observed_at,
+                       (ARRAY_AGG(source_name ORDER BY observed_at DESC))[1] AS source_name
+                FROM market_observations
+                GROUP BY dataset, series, unit
+                ORDER BY dataset, series, unit NULLS FIRST
+            """).fetchall()
             series = conn.execute("""
                 WITH selected_series AS (
                     SELECT dataset, series, unit
@@ -97,6 +107,11 @@ def overview(_: bool = Depends(verify_read_token)):
             "dataset_count": totals["dataset_count"],
             "latest_observation": totals["latest_observation"].isoformat() if totals["latest_observation"] else None,
             "datasets": [{**row, "last_observed_at": row["last_observed_at"].isoformat() if row["last_observed_at"] else None} for row in datasets],
+            "available_series": [{
+                **row,
+                "first_observed_at": row["first_observed_at"].isoformat() if row["first_observed_at"] else None,
+                "last_observed_at": row["last_observed_at"].isoformat() if row["last_observed_at"] else None,
+            } for row in available_series],
             "market_series": [{**row, "observed_at": row["observed_at"].isoformat()} for row in series],
         }
     except HTTPException:
@@ -118,6 +133,30 @@ def get_series(
                 FROM market_observations
                 WHERE dataset = %s AND series = %s
                 ORDER BY observed_at DESC LIMIT %s
+            """, (dataset, series_name, limit)).fetchall()
+        rows.reverse()
+        return [{**row, "observed_at": row["observed_at"].isoformat()} for row in rows]
+    except Exception:
+        raise HTTPException(status_code=503, detail="Research data is temporarily unavailable")
+
+
+
+@app.get("/v1/observations")
+def get_observations(
+    dataset: str = Query(..., min_length=1, max_length=200),
+    series_name: str = Query(..., min_length=1, max_length=200),
+    limit: int = Query(default=120, ge=1, le=5000),
+    _: bool = Depends(verify_read_token),
+):
+    """Return one explicitly selected dataset/series pair in chronological order."""
+    try:
+        with connection() as conn:
+            rows = conn.execute("""
+                SELECT observed_at, dataset, series, value, unit, source_name
+                FROM market_observations
+                WHERE dataset = %s AND series = %s
+                ORDER BY observed_at DESC
+                LIMIT %s
             """, (dataset, series_name, limit)).fetchall()
         rows.reverse()
         return [{**row, "observed_at": row["observed_at"].isoformat()} for row in rows]
