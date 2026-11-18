@@ -1,7 +1,22 @@
-﻿from pathlib import Path
+"""Build transparent quantitative outlook inputs from validated analysis outputs.
+
+This module summarises calculated observations. It does not manufacture missing
+market data or convert a descriptive scenario framework into a forecast.
+"""
+from __future__ import annotations
+
+from pathlib import Path
 import json
+from typing import Any
+
 import numpy as np
 import pandas as pd
+
+from research_models import (
+    calculate_index_performance,
+    calculate_tbill_spread,
+    calculate_yield_curve_slope,
+)
 
 PROJECT = Path.home() / "Desktop" / "Rock_Investment_Outlook_2026"
 ANALYSIS = PROJECT / "analysis"
@@ -11,623 +26,316 @@ print("KENYA INVESTMENT INTELLIGENCE — QUANTITATIVE OUTLOOK ENGINE")
 print("=" * 90)
 
 
-def read_csv(name):
-
+def read_csv(name: str) -> pd.DataFrame:
     path = ANALYSIS / name
-
     if not path.exists():
-
         print(f"  - {name}: NOT FOUND")
         return pd.DataFrame()
-
     try:
-
-        df = pd.read_csv(
-            path,
-            low_memory=False
-        )
-
-        print(
-            f"  ✓ {name}: {len(df):,} rows"
-        )
-
-        return df
-
+        frame = pd.read_csv(path, low_memory=False)
+        print(f"  ✓ {name}: {len(frame):,} rows")
+        return frame
     except Exception as exc:
-
-        print(
-            f"  ! {name}: {exc}"
-        )
-
+        print(f"  ! {name}: {exc}")
         return pd.DataFrame()
 
 
-def numeric(series):
+def numeric(values: pd.Series) -> pd.Series:
+    if values.dtype == object or pd.api.types.is_string_dtype(values.dtype):
+        values = (
+            values.astype("string")
+            .str.strip()
+            .str.replace(",", "", regex=False)
+            .str.replace("%", "", regex=False)
+            .str.replace("KES", "", regex=False)
+            .str.replace("KSh", "", regex=False)
+        )
+    result = pd.to_numeric(values, errors="coerce")
+    return result.where(np.isfinite(result))
 
-    return pd.to_numeric(
-        series.astype(str)
-        .str.replace(",", "", regex=False)
-        .str.replace("%", "", regex=False)
-        .str.replace("KES", "", regex=False)
-        .str.replace("KSh", "", regex=False),
-        errors="coerce"
+
+def calculate_market_regime_from_monthly(frame: pd.DataFrame) -> dict[str, Any]:
+    required = {"Month", "Market_Return"}
+    if not required.issubset(frame.columns):
+        return {"status": "unavailable", "reason": "Monthly market-return file is missing required columns"}
+
+    monthly = frame[["Month", "Market_Return"]].copy()
+    monthly["Month"] = pd.PeriodIndex(monthly["Month"].astype(str), freq="M")
+    monthly["Market_Return"] = numeric(monthly["Market_Return"])
+    monthly = (
+        monthly.dropna(subset=["Month", "Market_Return"])
+        .sort_values("Month")
+        .drop_duplicates("Month", keep="last")
     )
+    recent = monthly.tail(12)
+    ordinals = recent["Month"].map(lambda period: period.ordinal).to_numpy()
+    complete = len(recent) == 12 and bool(np.all(np.diff(ordinals) == 1))
+    returns = recent["Market_Return"]
+
+    if not complete:
+        return {
+            "status": "incomplete",
+            "months_available": int(len(recent)),
+            "is_full_consecutive_12m": False,
+            "historical_return_12m": None,
+            "annualised_monthly_volatility": None,
+            "maximum_drawdown_12m": None,
+            "positive_month_share": None,
+        }
+
+    wealth = (1.0 + returns).cumprod()
+    drawdown = wealth / wealth.cummax() - 1.0
+    values = {
+        "status": "passed",
+        "months_available": 12,
+        "is_full_consecutive_12m": True,
+        "historical_return_12m": float(wealth.iloc[-1] - 1.0),
+        "annualised_monthly_volatility": float(returns.std(ddof=1) * np.sqrt(12.0)),
+        "maximum_drawdown_12m": float(drawdown.min()),
+        "positive_month_share": float((returns > 0).mean()),
+    }
+    if not np.isfinite([
+        values["historical_return_12m"],
+        values["annualised_monthly_volatility"],
+        values["maximum_drawdown_12m"],
+        values["positive_month_share"],
+    ]).all():
+        return {"status": "failed", "reason": "Non-finite market-regime output"}
+    return values
 
 
-metrics = {}
-
-# ============================================================
-# EQUITIES
-# ============================================================
-
-print("\n[1] EQUITY MARKET")
-
-equity = read_csv(
-    "nse_analysis.csv"
-)
-
-if equity.empty:
-
-    # fall back to the repaired/derived market snapshot
-    equity = read_csv(
-        "market_daily_snapshot.csv"
-    )
-
-if not equity.empty:
-
-    if "Date" in equity.columns:
-
-        equity["Date"] = pd.to_datetime(
-            equity["Date"],
-            errors="coerce"
-        )
-
-    price_col = None
-
-    for candidate in [
-        "Price (KES)",
-        "Price",
-        "price",
-        "Index Value"
-    ]:
-
-        if candidate in equity.columns:
-
-            price_col = candidate
-            break
-
-    if price_col:
-
-        equity[price_col] = numeric(
-            equity[price_col]
-        )
-
-        equity = equity.dropna(
-            subset=[price_col]
-        )
-
-        if not equity.empty:
-
-            metrics["equity"] = {
-                "observations": int(len(equity)),
-                "latest_price": float(
-                    equity[price_col].iloc[-1]
-                ),
-                "minimum": float(
-                    equity[price_col].min()
-                ),
-                "maximum": float(
-                    equity[price_col].max()
-                )
-            }
+def sanitise(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): sanitise(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [sanitise(item) for item in value]
+    if isinstance(value, (pd.Timestamp, pd.Period)):
+        return str(value)
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, (np.floating, float)):
+        return float(value) if np.isfinite(value) else None
+    if isinstance(value, (np.bool_,)):
+        return bool(value)
+    return value
 
 
-# ============================================================
-# MARKET RETURNS / RISK
-# ============================================================
+metrics: dict[str, Any] = {}
 
-print("\n[2] MARKET RISK")
+# ---------------------------------------------------------------------------
+# 1. Market regime: use the same equal-weighted daily cross-sectional proxy
+#    that the validated quantitative engine generated.
+# ---------------------------------------------------------------------------
+print("\n[1] MARKET REGIME")
+regime_monthly = read_csv("market_regime_monthly.csv")
+market_regime = calculate_market_regime_from_monthly(regime_monthly)
+metrics["market_regime"] = market_regime
 
-risk = read_csv(
-    "security_metrics.csv"
-)
-
+# ---------------------------------------------------------------------------
+# 2. Cross-sectional equity risk: summarise eligible securities, never the
+#    last arbitrary row in the CSV.
+# ---------------------------------------------------------------------------
+print("\n[2] EQUITY RISK DISTRIBUTION")
+risk = read_csv("security_metrics.csv")
 if not risk.empty:
-
-    numeric_cols = []
-
-    for col in risk.columns:
-
-        converted = pd.to_numeric(
-            risk[col],
-            errors="coerce"
-        )
-
-        if converted.notna().sum() > 0:
-
-            risk[col] = converted
-            numeric_cols.append(col)
-
-    metrics["risk"] = {
-        "numeric_fields": numeric_cols
+    expected = {
+        "Annualized_Volatility",
+        "Maximum_Drawdown",
+        "Valid_Risk_Observations",
+        "Return_Anomaly_Count",
     }
+    if expected.issubset(risk.columns):
+        volatility = numeric(risk["Annualized_Volatility"])
+        drawdown = numeric(risk["Maximum_Drawdown"])
+        risk_observations = numeric(risk["Valid_Risk_Observations"])
+        anomaly_counts = numeric(risk["Return_Anomaly_Count"]).fillna(0)
 
-    for field in [
-        "annualised_volatility",
-        "Annualised_Volatility",
-        "volatility",
-        "max_drawdown",
-        "Maximum_Drawdown"
-    ]:
+        eligible = (
+            risk_observations.ge(30)
+            & volatility.notna()
+            & drawdown.notna()
+            & volatility.map(np.isfinite)
+            & drawdown.map(np.isfinite)
+        )
+        vol_eligible = volatility[eligible]
+        dd_eligible = drawdown[eligible]
 
-        if field in risk.columns:
+        metrics["risk"] = {
+            "status": "passed" if int(eligible.sum()) > 0 else "incomplete",
+            "eligible_securities": int(eligible.sum()),
+            "securities_with_anomalies": int(anomaly_counts.gt(0).sum()),
+            "median_annualised_volatility": float(vol_eligible.median()) if not vol_eligible.empty else None,
+            "p90_annualised_volatility": float(vol_eligible.quantile(0.90)) if not vol_eligible.empty else None,
+            "median_maximum_drawdown": float(dd_eligible.median()) if not dd_eligible.empty else None,
+            "worst_security_maximum_drawdown": float(dd_eligible.min()) if not dd_eligible.empty else None,
+        }
+    else:
+        metrics["risk"] = {
+            "status": "unavailable",
+            "reason": f"Security metrics missing columns: {sorted(expected.difference(risk.columns))}",
+        }
+else:
+    metrics["risk"] = {"status": "unavailable", "reason": "security_metrics.csv is missing or empty"}
 
-            series = risk[field].dropna()
-
-            if not series.empty:
-
-                metrics["risk"][
-                    field
-                ] = float(series.iloc[-1])
-
-
-# ============================================================
-# TREASURY BILLS
-# ============================================================
-
+# ---------------------------------------------------------------------------
+# 3. Treasury bills: compare the 91-day and 364-day observations on the same
+#    latest common date.
+# ---------------------------------------------------------------------------
 print("\n[3] TREASURY BILLS")
+bills = read_csv("clean_treasury_bills.csv")
+tbill_result = calculate_tbill_spread(bills)
+metrics["treasury_bills"] = {
+    "status": tbill_result["status"],
+    "latest_common_date": tbill_result.get("date"),
+    "91_day_rate": tbill_result.get("91_day_rate"),
+    "364_day_rate": tbill_result.get("364_day_rate"),
+    "91d_364d_spread": tbill_result.get("spread_percentage_points"),
+    "reason": tbill_result.get("reason"),
+}
 
-tb = read_csv(
-    "clean_treasury_bills.csv"
-)
-
-if not tb.empty:
-
-    tb["Date"] = pd.to_datetime(
-        tb["Date"],
-        errors="coerce"
-    )
-
-    tb["Rate (%)"] = numeric(
-        tb["Rate (%)"]
-    )
-
-    tb = tb.dropna(
-        subset=[
-            "Date",
-            "Rate (%)"
-        ]
-    )
-
-    if not tb.empty:
-
-        latest_date = tb["Date"].max()
-
-        latest = tb[
-            tb["Date"] == latest_date
-        ].copy()
-
-        metrics["treasury_bills"] = {
-            "latest_date": latest_date.strftime(
-                "%Y-%m-%d"
-            ),
-            "latest_rates": {}
-        }
-
-        for _, row in latest.iterrows():
-
-            tenor = str(
-                row["Tenor"]
-            )
-
-            metrics["treasury_bills"][
-                "latest_rates"
-            ][tenor] = float(
-                row["Rate (%)"]
-            )
-
-        # 91D / 364D spread where available
-        rates = {
-            str(r["Tenor"]): float(r["Rate (%)"])
-            for _, r in latest.iterrows()
-        }
-
-        if (
-            "91-Day" in rates
-            and
-            "364-Day" in rates
-        ):
-
-            metrics["treasury_bills"][
-                "91d_364d_spread"
-            ] = rates["364-Day"] - rates["91-Day"]
-
-
-# ============================================================
-# YIELD CURVE
-# ============================================================
-
+# ---------------------------------------------------------------------------
+# 4. Yield curve: sort maturities by their numeric tenor, not string order.
+# ---------------------------------------------------------------------------
 print("\n[4] YIELD CURVE")
+curve = read_csv("clean_yield_curve.csv")
+curve_result = calculate_yield_curve_slope(curve)
+metrics["yield_curve"] = {
+    "status": curve_result["status"],
+    "points": curve_result.get("points"),
+    "short_maturity": curve_result.get("short_maturity"),
+    "short_yield": curve_result.get("short_yield"),
+    "long_maturity": curve_result.get("long_maturity"),
+    "long_yield": curve_result.get("long_yield"),
+    "long_short_spread": curve_result.get("slope_percentage_points"),
+    "reason": curve_result.get("reason"),
+}
 
-curve = read_csv(
-    "clean_yield_curve.csv"
-)
-
-if not curve.empty:
-
-    curve["Yield (%)"] = numeric(
-        curve["Yield (%)"]
-    )
-
-    curve = curve.dropna(
-        subset=["Yield (%)"]
-    )
-
-    curve["Maturity"] = (
-        curve["Maturity"]
-        .astype(str)
-        .str.strip()
-    )
-
-    order = {
-        "1 Year": 1,
-        "2 Years": 2,
-        "3 Years": 3,
-        "5 Years": 5,
-        "10 Years": 10,
-        "20 Years": 20,
-        "30 Years": 30
-    }
-
-    curve["_years"] = (
-        curve["Maturity"].map(order)
-    )
-
-    curve = curve.dropna(
-        subset=["_years"]
-    )
-
-    if not curve.empty:
-
-        curve = curve.sort_values(
-            "_years"
-        )
-
-        metrics["yield_curve"] = {
-            "points": int(len(curve))
-        }
-
-        if len(curve) >= 2:
-
-            short = curve.iloc[0]
-            long = curve.iloc[-1]
-
-            metrics["yield_curve"][
-                "short_maturity"
-            ] = short["Maturity"]
-
-            metrics["yield_curve"][
-                "short_yield"
-            ] = float(short["Yield (%)"])
-
-            metrics["yield_curve"][
-                "long_maturity"
-            ] = long["Maturity"]
-
-            metrics["yield_curve"][
-                "long_yield"
-            ] = float(long["Yield (%)"])
-
-            metrics["yield_curve"][
-                "long_short_spread"
-            ] = float(
-                long["Yield (%)"]
-                -
-                short["Yield (%)"]
-            )
-
-
-# ============================================================
-# BOND INDEX
-# ============================================================
-
+# ---------------------------------------------------------------------------
+# 5. Bond index: calculate a return from index levels, not from the latest
+#    index level itself.
+# ---------------------------------------------------------------------------
 print("\n[5] GOVERNMENT BOND INDEX")
+bond = read_csv("clean_nse_bond_index.csv")
+bond_result = calculate_index_performance(bond)
+metrics["bond_index"] = {
+    "status": bond_result["status"],
+    "observations": bond_result.get("observations"),
+    "first_date": bond_result.get("first_date"),
+    "last_date": bond_result.get("last_date"),
+    "first_index_value": bond_result.get("first_index_value"),
+    "latest_index_value": bond_result.get("latest_index_value"),
+    "total_sample_return": bond_result.get("sample_return"),
+    "reason": bond_result.get("reason"),
+}
 
-bond = read_csv(
-    "clean_nse_bond_index.csv"
-)
-
-if not bond.empty:
-
-    bond["Date"] = pd.to_datetime(
-        bond["Date"],
-        errors="coerce"
-    )
-
-    bond["Index Value"] = numeric(
-        bond["Index Value"]
-    )
-
-    bond = bond.dropna(
-        subset=[
-            "Date",
-            "Index Value"
-        ]
-    )
-
-    if not bond.empty:
-
-        bond = bond.sort_values(
-            "Date"
-        )
-
-        values = bond[
-            "Index Value"
-        ]
-
-        latest = float(
-            values.iloc[-1]
-        )
-
-        first = float(
-            values.iloc[0]
-        )
-
-        total_return = (
-            latest / first
-        ) - 1
-
-        metrics["bond_index"] = {
-            "observations": int(len(bond)),
-            "latest_value": latest,
-            "total_sample_return": float(
-                total_return
-            )
-        }
-
-
-# ============================================================
-# INFLATION
-# ============================================================
-
+# ---------------------------------------------------------------------------
+# 6. Inflation: retain the latest actual dated rate.
+# ---------------------------------------------------------------------------
 print("\n[6] INFLATION")
+inflation = read_csv("clean_inflation.csv")
+if not inflation.empty and {"Date", "Rate (%)"}.issubset(inflation.columns):
+    inflation["Date"] = pd.to_datetime(inflation["Date"], errors="coerce")
+    inflation["Rate (%)"] = numeric(inflation["Rate (%)"])
+    inflation = inflation.dropna(subset=["Date", "Rate (%)"]).sort_values("Date")
+    if not inflation.empty:
+        latest = inflation.iloc[-1]
+        metrics["inflation"] = {
+            "status": "passed",
+            "latest_date": latest["Date"].strftime("%Y-%m-%d"),
+            "latest_value": float(latest["Rate (%)"]),
+        }
+    else:
+        metrics["inflation"] = {"status": "unavailable", "reason": "No valid dated inflation observations"}
+else:
+    metrics["inflation"] = {"status": "unavailable", "reason": "Required inflation fields are missing"}
 
-inflation = read_csv(
-    "clean_inflation.csv"
-)
-
-if not inflation.empty:
-
-    date_col = None
-
-    for candidate in [
-        "Date",
-        "date"
-    ]:
-
-        if candidate in inflation.columns:
-
-            date_col = candidate
-            break
-
-    value_col = None
-
-    for candidate in [
-        "Rate (%)",
-        "rate",
-        "value"
-    ]:
-
-        if candidate in inflation.columns:
-
-            value_col = candidate
-            break
-
-    if date_col and value_col:
-
-        inflation[date_col] = pd.to_datetime(
-            inflation[date_col],
-            errors="coerce"
-        )
-
-        inflation[value_col] = numeric(
-            inflation[value_col]
-        )
-
-        inflation = inflation.dropna(
-            subset=[
-                date_col,
-                value_col
-            ]
-        )
-
-        if not inflation.empty:
-
-            inflation = inflation.sort_values(
-                date_col
-            )
-
-            latest = inflation.iloc[-1]
-
-            metrics["inflation"] = {
-                "latest_date": latest[
-                    date_col
-                ].strftime("%Y-%m-%d"),
-                "latest_value": float(
-                    latest[value_col]
-                )
-            }
-
-
-# ============================================================
-# FOREIGN FLOWS
-# ============================================================
-
-print("\n[7] FOREIGN FLOWS")
-
-flows = read_csv(
-    "foreign_flow_relationships.csv"
-)
-
-if not flows.empty:
-
-    numeric_cols = []
-
-    for col in flows.columns:
-
-        converted = pd.to_numeric(
-            flows[col],
-            errors="coerce"
-        )
-
-        if converted.notna().sum() > 0:
-
-            numeric_cols.append(
-                col
-            )
-
+# ---------------------------------------------------------------------------
+# 7. Foreign-flow relationships: aggregate the valid cross-sectional estimates.
+# ---------------------------------------------------------------------------
+print("\n[7] FOREIGN-FLOW RELATIONSHIPS")
+flows = read_csv("foreign_flow_relationships.csv")
+if not flows.empty and {"Foreign_Flow_Return_Correlation", "P_Value"}.issubset(flows.columns):
+    correlation = numeric(flows["Foreign_Flow_Return_Correlation"]).dropna()
+    p_values = numeric(flows["P_Value"]).dropna()
     metrics["foreign_flows"] = {
-        "numeric_fields": numeric_cols
+        "status": "passed" if not correlation.empty else "unavailable",
+        "securities_with_valid_estimates": int(len(correlation)),
+        "median_correlation": float(correlation.median()) if not correlation.empty else None,
+        "median_p_value": float(p_values.median()) if not p_values.empty else None,
     }
+else:
+    metrics["foreign_flows"] = {"status": "unavailable", "reason": "No valid foreign-flow relationship estimates"}
 
+# ---------------------------------------------------------------------------
+# 8. Scenario inputs: observed references only, never forecasts.
+# ---------------------------------------------------------------------------
+print("\n[8] SCENARIO MONITORING INPUTS")
+metrics["scenario_framework"] = {
+    "is_forecast": False,
+    "probabilities_available": False,
+    "observed_volatility": metrics["risk"].get("median_annualised_volatility"),
+    "curve_slope": metrics["yield_curve"].get("long_short_spread"),
+    "tbill_91d_364d_spread": metrics["treasury_bills"].get("91d_364d_spread"),
+    "latest_inflation": metrics["inflation"].get("latest_value"),
+    "note": "Descriptive monitoring inputs only. The Bull/Base/Bear cards are not statistical forecasts or trained prediction models.",
+}
 
-# ============================================================
-# SCENARIO INPUTS
-# ============================================================
+# Include the quant-engine release gate where available.
+validation_path = ANALYSIS / "model_validation.json"
+if validation_path.exists():
+    try:
+        metrics["model_validation"] = json.loads(validation_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        metrics["model_validation"] = {"overall_status": "unavailable", "reason": str(exc)}
+else:
+    metrics["model_validation"] = {"overall_status": "not_run", "reason": "Run build_quant_engine.py first"}
 
-print("\n[8] SCENARIO FRAMEWORK")
-
-scenario = {}
-
-# These are analytical reference bands,
-# not predictions or guaranteed returns.
-
-if "risk" in metrics:
-
-    vol = (
-        metrics["risk"]
-        .get("annualised_volatility")
-        or
-        metrics["risk"]
-        .get("Annualised_Volatility")
-        or
-        metrics["risk"]
-        .get("volatility")
+# Final machine-readable status: no success status if a required model/data section failed.
+required_sections = ("market_regime", "risk", "treasury_bills", "yield_curve", "bond_index", "inflation")
+metrics["overall_status"] = (
+    "passed"
+    if (
+        metrics["market_regime"].get("status") == "passed"
+        and metrics["risk"].get("status") == "passed"
+        and metrics["treasury_bills"].get("status") == "ok"
+        and metrics["yield_curve"].get("status") == "ok"
+        and metrics["bond_index"].get("status") == "ok"
+        and metrics["inflation"].get("status") == "passed"
     )
+    else "incomplete"
+)
+metrics["incomplete_sections"] = [
+    section for section in required_sections
+    if metrics[section].get("status") not in ("passed", "ok")
+]
 
-    if vol is not None:
-
-        scenario["observed_volatility"] = vol
-
-if "yield_curve" in metrics:
-
-    scenario["curve_slope"] = metrics[
-        "yield_curve"
-    ].get(
-        "long_short_spread"
-    )
-
-if "treasury_bills" in metrics:
-
-    scenario["tbill_91d_364d_spread"] = metrics[
-        "treasury_bills"
-    ].get(
-        "91d_364d_spread"
-    )
-
-if "inflation" in metrics:
-
-    scenario["latest_inflation"] = metrics[
-        "inflation"
-    ].get(
-        "latest_value"
-    )
-
-metrics["scenario_framework"] = scenario
-
-
-# ============================================================
-# SAVE RESULTS
-# ============================================================
-
-json_path = (
-    ANALYSIS
-    / "outlook_quant_metrics.json"
+# ---------------------------------------------------------------------------
+# Save JSON and flat CSV without NaN/Infinity literals.
+# ---------------------------------------------------------------------------
+json_path = ANALYSIS / "outlook_quant_metrics.json"
+clean_metrics = sanitise(metrics)
+json_path.write_text(
+    json.dumps(clean_metrics, indent=2, allow_nan=False),
+    encoding="utf-8",
 )
 
-with open(
-    json_path,
-    "w",
-    encoding="utf-8"
-) as f:
-
-    json.dump(
-        metrics,
-        f,
-        indent=2
-    )
-
-rows = []
-
-for section, values in metrics.items():
-
-    if not isinstance(
-        values,
-        dict
-    ):
-
+rows: list[dict[str, Any]] = []
+for section, values in clean_metrics.items():
+    if not isinstance(values, dict):
+        rows.append({"section": "summary", "metric": section, "value": values})
         continue
-
     for key, value in values.items():
-
-        if isinstance(
-            value,
-            dict
-        ):
-
+        if isinstance(value, dict):
             continue
+        rows.append({"section": section, "metric": key, "value": value})
 
-        rows.append(
-            {
-                "section": section,
-                "metric": key,
-                "value": value
-            }
-        )
-
-table = pd.DataFrame(
-    rows
-)
-
-csv_path = (
-    ANALYSIS
-    / "outlook_quant_metrics.csv"
-)
-
-table.to_csv(
-    csv_path,
-    index=False,
-    encoding="utf-8-sig"
-)
+csv_path = ANALYSIS / "outlook_quant_metrics.csv"
+pd.DataFrame(rows).to_csv(csv_path, index=False, encoding="utf-8-sig")
 
 print("\n" + "=" * 90)
 print("QUANTITATIVE OUTLOOK ENGINE COMPLETE")
 print("=" * 90)
-
-print("\nCreated:")
-
-print(
-    f"  ✓ {json_path}"
-)
-
-print(
-    f"  ✓ {csv_path}"
-)
-
-print("\nAvailable sections:")
-
-for section in metrics:
-
-    print(
-        f"  ✓ {section}"
-    )
+print("Overall status:", metrics["overall_status"])
+print("Incomplete sections:", metrics["incomplete_sections"] or "None")
+print("Created:", json_path)
+print("Created:", csv_path)
