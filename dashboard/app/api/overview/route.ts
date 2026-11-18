@@ -5,7 +5,9 @@ export const revalidate = 0;
 
 export async function GET() {
   const baseUrl = process.env.DATA_API_URL?.replace(/\/$/, "");
-  if (!baseUrl) {
+  const token = process.env.DATA_API_TOKEN;
+
+  if (!baseUrl || !token) {
     return NextResponse.json({
       status: "not_configured",
       message: "The research data service has not been connected yet. No market figures are being simulated."
@@ -15,7 +17,7 @@ export async function GET() {
   try {
     const response = await fetch(`${baseUrl}/v1/overview`, {
       cache: "no-store",
-      headers: { "Accept": "application/json" },
+      headers: { "Accept": "application/json", "Authorization": `Bearer ${token}` },
       signal: AbortSignal.timeout(8000)
     });
     if (!response.ok) {
