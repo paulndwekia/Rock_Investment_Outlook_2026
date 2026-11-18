@@ -12,6 +12,15 @@ export type DatasetSummary = {
   last_observed_at: string | null;
   source_name: string | null;
 };
+export type AvailableSeries = {
+  dataset: string;
+  series: string;
+  unit?: string | null;
+  observations: number;
+  first_observed_at: string | null;
+  last_observed_at: string | null;
+  source_name: string | null;
+};
 export type OverviewResponse = {
   status: "ok" | "not_configured" | "unavailable";
   generated_at?: string;
@@ -19,6 +28,7 @@ export type OverviewResponse = {
   total_observations?: number;
   dataset_count?: number;
   datasets?: DatasetSummary[];
+  available_series?: AvailableSeries[];
   market_series?: Observation[];
   message?: string;
 };
