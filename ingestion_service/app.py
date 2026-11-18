@@ -64,13 +64,23 @@ def overview(_: bool = Depends(verify_read_token)):
                 GROUP BY dataset ORDER BY dataset
             """).fetchall()
             series = conn.execute("""
-                SELECT observed_at, series, value, unit, source_name
-                FROM market_observations
-                WHERE series = (
-                    SELECT series FROM market_observations
-                    GROUP BY series ORDER BY COUNT(*) DESC LIMIT 1
+                WITH selected_series AS (
+                    SELECT dataset, series, unit
+                    FROM market_observations
+                    GROUP BY dataset, series, unit
+                    ORDER BY COUNT(*) DESC, MAX(observed_at) DESC, dataset, series
+                    LIMIT 1
                 )
-                ORDER BY observed_at DESC LIMIT 120
+                SELECT observation.dataset, observation.observed_at,
+                       observation.series, observation.value,
+                       observation.unit, observation.source_name
+                FROM market_observations AS observation
+                JOIN selected_series AS selected
+                  ON observation.dataset = selected.dataset
+                 AND observation.series = selected.series
+                 AND observation.unit IS NOT DISTINCT FROM selected.unit
+                ORDER BY observation.observed_at DESC
+                LIMIT 120
             """).fetchall()
         series.reverse()
         return {
