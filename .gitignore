@@ -52,3 +52,13 @@ analysis/*_audit.*
 analysis/*_error_recovery*
 analysis/*known_good*
 analysis/*rollback*
+
+# Private source exports, browser captures and local research stores
+data/incoming/
+data/canonical/
+data/archive/
+data/pages/
+data/raw/
+data/processed/
+database/*.db
+database/*.db-*
