@@ -10,13 +10,13 @@ on:
       - "ingestion_service/**"
       - "scripts/**"
       - "website/**"
-      - "scripts/**"
-      - "website/**"
       - ".github/workflows/project-checks.yml"
   pull_request:
     paths:
       - "dashboard/**"
       - "ingestion_service/**"
+      - "scripts/**"
+      - "website/**"
       - ".github/workflows/project-checks.yml"
 
 permissions:
