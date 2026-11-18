@@ -234,9 +234,9 @@ def test_contiguous_drawdown_does_not_bridge_missing_return_gaps():
     )
 
     assert result["status"] == "ok"
-    # The post-gap loss starts a new segment; it must not be measured
-    # against the pre-gap peak.
-    assert result["maximum_drawdown"] == pytest.approx(0.0)
+    # The post-gap segment starts from unit wealth: its -20% first return
+    # counts as a 20% drawdown, but the pre-gap +50% peak is not carried over.
+    assert result["maximum_drawdown"] == pytest.approx(-0.2)
 
 
 def test_tbill_spread_parses_percentage_strings_and_same_date_rates():
