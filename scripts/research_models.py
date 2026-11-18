@@ -110,7 +110,11 @@ def _maximum_drawdown_by_contiguous_segment(returns: pd.Series) -> float:
     drawdowns: list[float] = []
     for _, segment in values[valid].groupby(segment_id[valid]):
         wealth = (1.0 + segment).cumprod()
-        drawdown = wealth / wealth.cummax() - 1.0
+        # Each contiguous segment starts from a fresh unit wealth baseline.
+        # This includes the first return's drawdown but never carries a peak
+        # from before a missing/anomalous observation.
+        peak = wealth.cummax().clip(lower=1.0)
+        drawdown = wealth / peak - 1.0
         if not drawdown.empty:
             drawdowns.append(float(drawdown.min()))
 
@@ -295,8 +299,9 @@ def calculate_market_regime(
     )
     return_series = _finite_numeric(recent["Market_Return"])
     wealth = (1.0 + return_series).cumprod() if consecutive else pd.Series(dtype=float)
+    peak = wealth.cummax().clip(lower=1.0) if not wealth.empty else wealth
     max_drawdown = (
-        float((wealth / wealth.cummax() - 1.0).min())
+        float((wealth / peak - 1.0).min())
         if not wealth.empty
         else float("nan")
     )
@@ -358,7 +363,8 @@ def calculate_market_regime_from_monthly(frame: pd.DataFrame) -> dict[str, Any]:
         }
 
     wealth = (1.0 + returns).cumprod()
-    drawdown = wealth / wealth.cummax() - 1.0
+    peak = wealth.cummax().clip(lower=1.0)
+    drawdown = wealth / peak - 1.0
     result = {
         "status": "passed",
         "months_available": 12,
