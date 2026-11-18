@@ -41,3 +41,13 @@ Create a Vercel project from this GitHub repository and set the Root Directory t
 - The research calculations and source data are not copied into the public frontend.
 - Public deployment must only expose datasets that are approved for display and redistribution.
 - Review the draft Terms and Privacy pages and complete their operating details before public launch.
+
+## Install on a phone
+
+The dashboard is configured as an installable Progressive Web App (PWA).
+
+- **Android (Chrome):** open the dashboard, tap the Install control, or use the browser menu → Install app / Add to Home screen.
+- **iPhone (Safari):** open the dashboard, tap Share → Add to Home Screen.
+- Once installed, it opens in its own app-style window. The service worker supplies a simple offline screen; market API responses are deliberately not cached.
+
+The PWA needs HTTPS, a valid manifest and the icons in `public/icons/`. Vercel serves the site over HTTPS.
