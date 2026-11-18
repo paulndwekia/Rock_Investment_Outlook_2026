@@ -29,21 +29,17 @@ research dataset.
 
 ## 2. Recent Historical Market Environment
 
-Over the latest 12 monthly observations available in the
-research dataset:
+The earlier analysis calculated the following measures over the latest 12 monthly observations available in its research dataset:
 
-**Observed cumulative market return:** 71.04%
+- Observed cumulative market return
+- Annualised volatility of monthly market returns
+- Average monthly reported volume
+- Cumulative reported net foreign flow
+- Share of positive months
 
-**Annualised volatility of monthly market returns:** 14.99%
+**Status:** these figures are preliminary research outputs, not yet revalidated for publication. They should not be treated as current market conditions. Recalculate them from the validated source series and record the exact sample period, data cut-off and return convention before using them in an external presentation.
 
-**Average monthly reported volume:** 551,643,975.00
-
-**Cumulative reported net foreign flow:** -18,083,147,792.33
-
-**Share of positive months:** 91.7%
-
-These are historical measurements rather than guarantees of
-future performance.
+These are historical measurements, not guarantees of future performance.
 
 ---
 
@@ -57,32 +53,20 @@ The security-level analysis calculates:
 - Average reported trading volume
 - Aggregate reported net foreign flow
 
-### Highest historical total returns in the available sample
+### Publication status: rankings withheld pending validation
 
-- **Satrix MSCI World Feeder ETF** — total return inf%; annualised volatility nan%.
-- **Homeboyz Entertainment** — total return inf%; annualised volatility 0.00%.
-- **Kenya Pipeline Company Plc Ord 0.02** — total return inf%; annualised volatility nan%.
-- **Sameer Africa Ltd Ord 5.00** — total return 562.50%; annualised volatility 686.23%.
-- **Car & General (K) Ltd Ord 5.00** — total return 454.76%; annualised volatility nan%.
-- **Kapchorua Tea Co. Ltd Ord Ord 5.00AIMS** — total return 364.00%; annualised volatility nan%.
-- **ABSA New Gold ETF** — total return 289.33%; annualised volatility nan%.
-- **Stanbic Holdings Plc ord.5.00** — total return 283.90%; annualised volatility 820.63%.
-- **E.A.Portland Cement Co. Ltd Ord 5.00** — total return 233.93%; annualised volatility nan%.
-- **Absa Bank Kenya Plc Ord 0.50** — total return 220.50%; annualised volatility 111.79%.
+The earlier security-level output contained non-finite values (`inf` and `nan`) and exceptionally large annualised volatility figures. These results are not suitable for a published ranking and are not reproduced here.
 
+Before publishing security-level return, volatility or drawdown rankings, the calculation must be rerun against a validated sample. The review should document at least:
 
-### Highest historical realised volatility
+- the price field and any corporate-action adjustment used;
+- the return frequency and annualisation convention;
+- zero, negative, missing and non-finite price observations;
+- stale prices, duplicate dates and irregular trading intervals;
+- the minimum number of valid return observations per security;
+- the handling of suspensions, delistings and newly listed instruments.
 
-- **Carbacid Investments Plc Ord 1.00** — annualised volatility 47569706.54%; maximum drawdown -100.00%.
-- **Olympia Capital Holdings Ltd Ord 5.00** — annualised volatility 19047.32%; maximum drawdown -99.87%.
-- **CIC Insurance Group Ltd Ord.1.00** — annualised volatility 7342.41%; maximum drawdown -99.75%.
-- **NCBA Bank Ltd Ord 5.00** — annualised volatility 3793.14%; maximum drawdown -99.24%.
-- **Nairobi Securities Exchange Ltd Ord 4.00** — annualised volatility 3743.73%; maximum drawdown -99.22%.
-- **Flame Tree Group Holdings Ltd Ord 0.825GEMS** — annualised volatility 3743.67%; maximum drawdown -99.36%.
-- **Bamburi Cement Ltd Ord 5.00** — annualised volatility 3677.63%; maximum drawdown -92.76%.
-- **Home Afrika Ltd Ord 1.00GEMS** — annualised volatility 3673.60%; maximum drawdown -99.69%.
-- **TPS Eastern Africa  Ltd Ord 1.00** — annualised volatility 3424.74%; maximum drawdown -99.24%.
-- **Kakuzi Ltd Ord.5.00** — annualised volatility 2540.70%; maximum drawdown -99.17%.
+The original outputs have not been silently corrected or replaced with estimates. Until that audit is complete, do not cite the earlier security rankings or use them as an investment signal. Any future ranking should publish its sample dates, observation count and validation rules alongside the results.
 
 
 ---
