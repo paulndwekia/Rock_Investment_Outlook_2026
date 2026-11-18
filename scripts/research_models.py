@@ -326,6 +326,58 @@ def calculate_market_regime(
     }
 
 
+def calculate_market_regime_from_monthly(frame: pd.DataFrame) -> dict[str, Any]:
+    """Validate and summarise a pre-aggregated monthly market-return series."""
+    if not {"Month", "Market_Return"}.issubset(frame.columns):
+        return {"status": "unavailable", "reason": "Monthly market-return file is missing required columns"}
+
+    monthly = frame[["Month", "Market_Return"]].copy()
+    try:
+        monthly["Month"] = pd.PeriodIndex(monthly["Month"].astype(str), freq="M")
+    except (TypeError, ValueError):
+        return {"status": "unavailable", "reason": "Month values cannot be parsed as monthly periods"}
+    monthly["Market_Return"] = _finite_numeric(monthly["Market_Return"])
+    monthly = (
+        monthly.dropna(subset=["Month", "Market_Return"])
+        .sort_values("Month")
+        .drop_duplicates("Month", keep="last")
+    )
+    recent = monthly.tail(12)
+    ordinals = recent["Month"].map(lambda period: period.ordinal).to_numpy()
+    complete = len(recent) == 12 and bool(np.all(np.diff(ordinals) == 1))
+    returns = recent["Market_Return"]
+    if not complete:
+        return {
+            "status": "incomplete",
+            "months_available": int(len(recent)),
+            "is_full_consecutive_12m": False,
+            "historical_return_12m": float("nan"),
+            "annualised_monthly_volatility": float("nan"),
+            "maximum_drawdown_12m": float("nan"),
+            "positive_month_share": float("nan"),
+        }
+
+    wealth = (1.0 + returns).cumprod()
+    drawdown = wealth / wealth.cummax() - 1.0
+    result = {
+        "status": "passed",
+        "months_available": 12,
+        "is_full_consecutive_12m": True,
+        "historical_return_12m": float(wealth.iloc[-1] - 1.0),
+        "annualised_monthly_volatility": float(returns.std(ddof=1) * np.sqrt(12.0)),
+        "maximum_drawdown_12m": float(drawdown.min()),
+        "positive_month_share": float((returns > 0).mean()),
+    }
+    if not np.isfinite([
+        result["historical_return_12m"],
+        result["annualised_monthly_volatility"],
+        result["maximum_drawdown_12m"],
+        result["positive_month_share"],
+    ]).all():
+        return {"status": "failed", "reason": "Non-finite market-regime output"}
+    return result
+
+
 def classify_market_regime(regime: dict[str, Any]) -> dict[str, Any]:
     """Classify observed 12-month trend without claiming a forecast or probability."""
     if not regime.get("is_full_consecutive_12m", False):
