@@ -10,6 +10,7 @@ import {
   Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from "recharts";
 import type { AvailableSeries, Observation, OverviewResponse } from "@/lib/types";
+import InstallPwaButton from "@/components/install-pwa";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard },
@@ -258,6 +259,7 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-2">
           <StatusPill status={data.status} />
+          <InstallPwaButton />
           <button onClick={() => void refresh()} disabled={loading} className="flex h-9 items-center gap-2 rounded-lg border border-[#E0DDD5] bg-white px-3 text-xs font-medium text-[#56615E] transition hover:border-[#C5AA73] disabled:opacity-50">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /><span className="hidden sm:inline">Refresh</span>
           </button>
