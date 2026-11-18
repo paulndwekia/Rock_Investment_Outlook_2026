@@ -10,7 +10,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from research_models import (
     calculate_correlation,
+    calculate_index_performance,
     calculate_market_regime,
+    calculate_return_risk_statistics,
     calculate_rolling_risk,
     calculate_security_metrics,
     calculate_tbill_spread,
@@ -84,7 +86,10 @@ def test_security_metrics_use_only_valid_finite_risk_observations():
     assert np.isfinite(row["Maximum_Drawdown"])
     assert -1.0 <= row["Maximum_Drawdown"] <= 0.0
     assert np.isfinite(row["Total_Return"])
-    assert np.isfinite(metrics.select_dtypes(include=[np.number]).to_numpy()).all()
+    assert np.isfinite(row["Valid_Risk_Observations"])
+    assert np.isfinite(row["Return_Anomaly_Count"])
+    # CAGR is deliberately unavailable because this test history is shorter than one year.
+    assert np.isnan(row["Annualized_Return"])
 
 
 def test_security_metrics_withhold_full_period_return_if_anomaly_exists():
@@ -218,3 +223,43 @@ def test_release_gate_rejects_missing_required_model_outputs():
     result = validate_model_outputs(frame, required_numeric=("volatility", "drawdown"))
     assert result["status"] == "failed"
     assert result["missing_columns"] == ["drawdown"]
+
+
+def test_contiguous_drawdown_does_not_bridge_missing_return_gaps():
+    result = calculate_return_risk_statistics(
+        pd.Series([0.5] + [np.nan] + [-0.2] * 30),
+        min_risk_observations=30,
+    )
+
+    assert result["status"] == "ok"
+    # The post-gap loss starts a new segment; it must not be measured
+    # against the pre-gap peak.
+    assert result["maximum_drawdown"] == pytest.approx(0.0)
+
+
+def test_tbill_spread_parses_percentage_strings_and_same_date_rates():
+    bills = pd.DataFrame({
+        "Date": ["2026-01-05", "2026-01-05", "2026-01-12", "2026-01-12"],
+        "Tenor": ["91-Day", "364-Day", "91-Day", "364-Day"],
+        "Rate (%)": ["8.50%", "8.75%", "8.60%", "8.90%"],
+    })
+    result = calculate_tbill_spread(bills)
+
+    assert result["status"] == "ok"
+    assert pd.Timestamp(result["date"]) == pd.Timestamp("2026-01-12")
+    assert result["91_day_rate"] == pytest.approx(8.6)
+    assert result["364_day_rate"] == pytest.approx(8.9)
+    assert result["spread_percentage_points"] == pytest.approx(0.3)
+
+
+def test_bond_index_performance_uses_levels_to_calculate_sample_return():
+    frame = pd.DataFrame({
+        "Date": ["2025-01-01", "2025-12-31"],
+        "Index Value": [1000.0, 1125.0],
+    })
+    result = calculate_index_performance(frame)
+
+    assert result["status"] == "ok"
+    assert result["latest_index_value"] == pytest.approx(1125.0)
+    assert result["sample_return"] == pytest.approx(0.125)
+    assert result["sample_return"] != result["latest_index_value"]
