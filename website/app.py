@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import sqlite3
+import sys
 
 import numpy as np
 import pandas as pd
@@ -15,6 +16,17 @@ import streamlit as st
 # ============================================================
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from research_models import (
+    calculate_correlation,
+    calculate_market_regime,
+    calculate_return_risk_statistics,
+    calculate_tbill_spread,
+    calculate_yield_curve_slope,
+    calculate_index_performance,
+    prepare_equity_panel,
+)
 
 DB = (
     ROOT
@@ -186,58 +198,11 @@ def load_nse():
 
     conn.close()
 
-    df["Date"] = pd.to_datetime(
-        df["Date"],
-        errors="coerce"
+    df = prepare_equity_panel(
+        df.rename(columns={"Foreign_Flow": "Net_Foreign_Flow"})
     )
-
-    for c in [
-        "Price",
-        "Volume",
-        "Foreign_Flow",
-        "Change_Pct"
-    ]:
-        df[c] = numeric(df[c])
-
-    df = df[
-        df["Date"].notna()
-    ].copy()
-
-    df = df.sort_values(
-        ["Security", "Date"]
-    )
-
-    # Return is valid only when both current and
-    # previous prices are positive.
-    previous = (
-        df.groupby("Security")["Price"]
-        .shift(1)
-    )
-
-    df["Return"] = np.nan
-
-    valid = (
-        (previous > 0)
-        &
-        (df["Price"] >= 0)
-    )
-
-    df.loc[valid, "Return"] = (
-        df.loc[valid, "Price"]
-        /
-        previous.loc[valid]
-        - 1
-    )
-
-    # Research-quality flag.
-    # Extreme observations are retained in the raw data,
-    # but not allowed to distort risk statistics.
-    df["Risk_Return"] = df["Return"].where(
-        df["Return"].between(
-            -2.0,
-            2.0
-        )
-    )
+    df["Foreign_Flow"] = df["Net_Foreign_Flow"]
+    df["Return"] = df["Daily_Return"]
 
     return df
 
@@ -549,66 +514,30 @@ elif page == "Market Regime":
         "Market Regime"
     )
 
-    monthly = (
-        nse.assign(
-            Month=nse["Date"]
-            .dt.to_period("M")
-            .astype(str)
-        )
-        .groupby("Month")
-        .agg(
-            Mean_Security_Return=(
-                "Return",
-                "mean"
-            ),
-            Trading_Volume=(
-                "Volume",
-                "sum"
-            ),
-            Foreign_Flow=(
-                "Foreign_Flow",
-                "sum"
-            ),
-            Securities=(
-                "Security",
-                "nunique"
+    regime = calculate_market_regime(nse, months_required=12)
+    monthly = regime["monthly"].copy()
+
+    if not monthly.empty:
+        monthly["Month"] = monthly["Month"].astype(str)
+        activity = (
+            nse.assign(Month=nse["Date"].dt.to_period("M").astype(str))
+            .groupby("Month")
+            .agg(
+                Trading_Volume=("Volume", "sum"),
+                Foreign_Flow=("Foreign_Flow", "sum"),
+                Securities=("Security", "nunique"),
             )
+            .reset_index()
         )
-        .reset_index()
-    )
-
-    monthly["Date"] = pd.to_datetime(
-        monthly["Month"],
-        errors="coerce"
-    )
-
-    monthly = monthly.sort_values(
-        "Date"
-    )
+        monthly = monthly.merge(activity, on="Month", how="left")
+        monthly["Mean_Security_Return"] = monthly["Market_Return"]
+        monthly["Date"] = pd.to_datetime(monthly["Month"], errors="coerce")
+        monthly = monthly.sort_values("Date")
 
     recent = monthly.tail(12)
-
-    returns = recent[
-        "Mean_Security_Return"
-    ].dropna()
-
-    observed_return = (
-        (1 + returns)
-        .prod()
-        - 1
-    )
-
-    volatility = (
-        returns.std() * np.sqrt(12)
-        if len(returns) > 1
-        else np.nan
-    )
-
-    positive_months = (
-        (returns > 0).mean()
-        if len(returns)
-        else np.nan
-    )
+    observed_return = regime.get("historical_return_12m", np.nan)
+    volatility = regime.get("annualised_monthly_volatility", np.nan)
+    positive_months = regime.get("positive_month_share", np.nan)
 
     c1, c2, c3 = st.columns(3)
 
@@ -632,8 +561,13 @@ elif page == "Market Regime":
     )
 
     st.info(
-        "This is an equal-weighted cross-sectional security-return "
-        "measure, not an official NSE index."
+        "This is an equal-weighted cross-sectional security-return proxy, not an official NSE index. "
+        f"Available monthly observations in the latest window: {regime.get('months_available', 0)}. "
+        + (
+            "A full consecutive 12-month compounded return is available."
+            if regime.get("is_full_consecutive_12m", False)
+            else "The full consecutive 12-month return is withheld because the history is incomplete."
+        )
     )
 
     left, right = st.columns(2)
@@ -1208,29 +1142,21 @@ elif page == "Risk Lab":
             if len(r) < 30:
                 continue
 
-            volatility = (
-                r.std()
-                * np.sqrt(252)
+            stats = calculate_return_risk_statistics(
+                g["Risk_Return"],
+                min_risk_observations=30,
+                annualisation_days=252,
             )
-
-            wealth = (
-                1.0 + r
-            ).cumprod()
-
-            peak = wealth.cummax()
-
-            drawdown = (
-                wealth
-                / peak
-                - 1.0
-            )
+            if stats["status"] != "ok":
+                continue
 
             results.append(
                 {
                     "Security": security,
-                    "Annualised_Volatility": volatility,
-                    "Maximum_Drawdown": drawdown.min(),
-                    "Valid_Risk_Observations": len(r),
+                    "Annualised_Volatility": stats["annualised_volatility"],
+                    "Maximum_Drawdown": stats["maximum_drawdown"],
+                    "Positive_Return_Share": stats["positive_return_share"],
+                    "Valid_Risk_Observations": stats["observations"],
                 }
             )
 
@@ -3092,14 +3018,22 @@ elif page == "Cross-Market Research":
                 if len(joined) < 10:
                     continue
 
-                corr = joined[
-                    [
-                        "Macro_Value",
-                        "Market_Return",
-                    ]
-                ].corr().iloc[0, 1]
+                correlation_result = calculate_correlation(
+                    joined["Macro_Value"],
+                    joined["Market_Return"],
+                    min_observations=10,
+                )
 
-                if pd.isna(corr):
+                if correlation_result["status"] != "ok":
+                    reference_rows.append(
+                        {
+                            "Dataset": dataset,
+                            "Reason": (
+                                "Correlation withheld: "
+                                + correlation_result["status"]
+                            ),
+                        }
+                    )
                     continue
 
                 display_name = dataset
@@ -3108,8 +3042,9 @@ elif page == "Cross-Market Research":
                     {
                         "Variable": display_name,
                         "Frequency": frequency,
-                        "Observations": len(joined),
-                        "Correlation": float(corr),
+                        "Observations": correlation_result["observations"],
+                        "Correlation": correlation_result["correlation"],
+                        "P_Value": correlation_result["p_value"],
                     }
                 )
 
