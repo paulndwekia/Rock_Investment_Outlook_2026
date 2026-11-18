@@ -167,6 +167,10 @@ function normaliseSource(config: SourceConfig, payload: PDMOPayload): {
   };
 }
 
+export function normalisePDMODataset(config: SourceConfig, payload: PDMOPayload) {
+  return normaliseSource(config, payload);
+}
+
 export async function fetchPDMOPublicData() {
   const sourceResults = await Promise.allSettled(SOURCES.map(async (config) => {
     const response = await fetch(config.url, {
