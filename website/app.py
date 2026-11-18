@@ -842,100 +842,59 @@ elif page == "Equity Lab":
                     g["Analytical_Anomaly"].sum()
                 )
 
-                # ------------------------------------------------
-                # Build the analytical series.
-                # Raw observations remain untouched.
-                # ------------------------------------------------
-
-                analytical = g[
-                    ~g["Analytical_Anomaly"]
-                ].copy()
-
-                analytical = (
-                    analytical
-                    .sort_values("Date")
-                    .reset_index(drop=True)
+                # Calculate returns on the original dated sequence BEFORE
+                # removing anomaly rows. This prevents accidental returns
+                # between observations on opposite sides of a removed spike.
+                g = g.sort_values("Date").copy()
+                g["Return"] = g["Price"].pct_change(fill_method=None)
+                previous_anomaly = (
+                    g["Analytical_Anomaly"]
+                    .shift(1)
+                    .astype("boolean")
+                    .fillna(False)
+                    .astype(bool)
                 )
-
-                analytical["Return"] = (
-                    analytical["Price"]
-                    /
-                    analytical["Price"].shift(1)
-                    - 1
+                g["Risk_Return"] = g["Return"].where(
+                    g["Return"].between(-2.0, 2.0)
                 )
-
-                # Remove the first undefined return.
-                analytical.loc[
-                    ~np.isfinite(
-                        analytical["Return"]
-                    ),
-                    "Return"
+                g.loc[
+                    g["Analytical_Anomaly"] | previous_anomaly,
+                    "Risk_Return"
                 ] = np.nan
 
-                # Research-quality risk filter.
-                analytical["Risk_Return"] = (
-                    analytical["Return"]
-                    .where(
-                        analytical["Return"].between(
-                            -2.0,
-                            2.0
-                        )
-                    )
+                # Keep source dates intact for charts. Returns on either side
+                # of an excluded anomaly remain missing rather than bridged.
+                analytical = (
+                    g.loc[~g["Analytical_Anomaly"]]
+                    .sort_values("Date")
+                    .copy()
                 )
+                valid_returns = analytical["Risk_Return"].dropna()
 
-                valid_returns = (
-                    analytical["Risk_Return"]
-                    .dropna()
-                )
-
-                # ------------------------------------------------
-                # Historical return
-                # ------------------------------------------------
-
+                # A full-path price return is withheld if the series contains
+                # an unresolved price anomaly.
                 total_return = np.nan
+                if len(g) >= 2 and anomaly_count == 0:
+                    first_price = float(g["Price"].iloc[0])
+                    last_price = float(g["Price"].iloc[-1])
+                    if first_price > 0 and last_price > 0:
+                        total_return = last_price / first_price - 1.0
 
-                if len(analytical) >= 2:
-
-                    total_return = (
-                        analytical["Price"].iloc[-1]
-                        /
-                        analytical["Price"].iloc[0]
-                        - 1
-                    )
-
-                # ------------------------------------------------
-                # Annualised volatility
-                # ------------------------------------------------
-
-                volatility = np.nan
-
-                if len(valid_returns) > 1:
-
-                    volatility = (
-                        valid_returns.std()
-                        *
-                        np.sqrt(252)
-                    )
-
-                # ------------------------------------------------
-                # Maximum drawdown from analytical price path
-                # ------------------------------------------------
-
-                running_max = (
-                    analytical["Price"]
-                    .cummax()
+                # Volatility and drawdown use the same gap-aware risk series
+                # as the Risk Lab and quantitative batch engine.
+                equity_risk = calculate_return_risk_statistics(
+                    g["Risk_Return"],
+                    min_risk_observations=30,
+                    annualisation_days=252,
                 )
-
-                drawdown = (
-                    analytical["Price"]
-                    /
-                    running_max
-                    - 1
+                volatility = (
+                    equity_risk["annualised_volatility"]
+                    if equity_risk["status"] == "ok"
+                    else np.nan
                 )
-
                 max_drawdown = (
-                    drawdown.min()
-                    if len(drawdown)
+                    equity_risk["maximum_drawdown"]
+                    if equity_risk["status"] == "ok"
                     else np.nan
                 )
 
@@ -973,8 +932,14 @@ elif page == "Equity Lab":
                     f"Equity Lab uses the repaired NSE analytical "
                     f"series. {anomaly_count:,} isolated price "
                     f"spikes were excluded from analytical charts "
-                    f"and statistics only. Raw Rock observations "
-                    f"were not modified or deleted."
+                    f"and statistics only. Returns on both sides of "
+                    f"an excluded spike are not chained together. "
+                    f"Raw Rock observations were not modified or deleted. "
+                    + (
+                        f" Risk metrics use {equity_risk['observations']} valid returns."
+                        if equity_risk["status"] == "ok"
+                        else f" Risk metrics withheld: {equity_risk['observations']} valid returns; at least 30 are required."
+                    )
                 )
 
                 # ------------------------------------------------
@@ -1012,7 +977,7 @@ elif page == "Equity Lab":
                         window=21,
                         min_periods=21
                     )
-                    .std()
+                    .std(ddof=1)
                     *
                     np.sqrt(252)
                 )
