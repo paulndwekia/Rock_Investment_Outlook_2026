@@ -3796,167 +3796,14 @@ elif page == "12-Month Outlook":
                     inflation.iloc[-1]["Value"]
                 )
 
+        # Fixed-income series are derived from dated clean source tables
+        # after the database read. Do not infer missing rates from unrelated
+        # rows or substitute values captured in a previous report.
         tbill_spread = np.nan
-
-        if not obs.empty:
-
-            bills = obs[
-                obs["Dataset"] == "treasury_bills"
-            ].copy()
-
-            if not bills.empty:
-
-                def bill_tenor(text):
-
-                    text = str(text).lower()
-
-                    if (
-                        "91d" in text
-                        or "91 day" in text
-                        or (
-                            "91" in text
-                            and "day" in text
-                        )
-                    ):
-                        return "91D"
-
-                    if (
-                        "364d" in text
-                        or "364 day" in text
-                        or "12 month" in text
-                        or "1 year" in text
-                    ):
-                        return "364D"
-
-                    return None
-
-                bills["Tenor"] = (
-                    bills["Identity"]
-                    .apply(bill_tenor)
-                )
-
-                rates = {}
-
-                for tenor in [
-                    "91D",
-                    "364D"
-                ]:
-
-                    subset = bills[
-                        bills["Tenor"] == tenor
-                    ].sort_values("Date")
-
-                    if not subset.empty:
-                        rates[tenor] = float(
-                            subset.iloc[-1]["Value"]
-                        )
-
-                if (
-                    "91D" in rates
-                    and "364D" in rates
-                ):
-                    tbill_spread = (
-                        rates["364D"]
-                        - rates["91D"]
-                    )
-
         short_yield = np.nan
         long_yield = np.nan
-
-        if not obs.empty:
-
-            curve = obs[
-                obs["Dataset"] == "yield_curve"
-            ].copy()
-
-            if not curve.empty:
-
-                def curve_bucket(text):
-
-                    text = str(text).lower()
-
-                    if (
-                        "91d" in text
-                        or "91 day" in text
-                        or "182d" in text
-                        or "182 day" in text
-                        or "364d" in text
-                        or "364 day" in text
-                    ):
-                        return "short"
-
-                    year_match = re.search(
-                        r"(\d+(?:\.\d+)?)\s*y",
-                        text
-                    )
-
-                    if year_match:
-
-                        years = float(
-                            year_match.group(1)
-                        )
-
-                        if years >= 7:
-                            return "long"
-
-                    if (
-                        "10" in text
-                        or "15" in text
-                        or "20" in text
-                    ):
-                        return "long"
-
-                    return None
-
-                curve["Bucket"] = (
-                    curve["Identity"]
-                    .apply(curve_bucket)
-                )
-
-                for bucket in [
-                    "short",
-                    "long"
-                ]:
-
-                    subset = curve[
-                        curve["Bucket"] == bucket
-                    ].sort_values("Date")
-
-                    if not subset.empty:
-
-                        value = float(
-                            subset.iloc[-1]["Value"]
-                        )
-
-                        if bucket == "short":
-                            short_yield = value
-                        else:
-                            long_yield = value
-
-        curve_slope = (
-            long_yield - short_yield
-            if (
-                pd.notna(short_yield)
-                and pd.notna(long_yield)
-            )
-            else np.nan
-        )
-
+        curve_slope = np.nan
         bond_return = np.nan
-
-        if not obs.empty:
-
-            bond = (
-                obs[
-                    obs["Dataset"] == "bond_index"
-                ]
-                .sort_values("Date")
-            )
-
-            if not bond.empty:
-                bond_return = float(
-                    bond.iloc[-1]["Value"]
-                )
 
         return {
             "historical_return": historical_return,
@@ -3991,41 +3838,56 @@ elif page == "12-Month Outlook":
         calculation_error = str(error)
 
     # ============================================================
-    # VERIFIED FIXED-INCOME BRIDGE
-    # ============================================================
-    # Fill only the missing Outlook fixed-income fields. Existing
-    # calculated values are preserved and the source database is
-    # never modified.
-    # ============================================================
+    # Recalculate fixed-income indicators from dated cleaned source series.
+    # If a source file is absent or malformed, the relevant metric stays unavailable.
+    fixed_income_status = {}
 
-    _outlook_verified_fixed_income = {
-        "tbill_spread": 0.1600,
-        "short_yield": 8.9900,
-        "long_yield": 13.4300,
-        "curve_slope": 4.4400,
-        "bond_return": 0.1253,
-    }
+    bills_data = load_analysis_csv("clean_treasury_bills.csv")
+    if bills_data.empty:
+        bills_data = load_clean_table("rock_treasury_bills_clean")
+    tbill_result = calculate_tbill_spread(bills_data)
+    outlook["tbill_spread"] = (
+        tbill_result["spread_percentage_points"]
+        if tbill_result["status"] == "ok"
+        else np.nan
+    )
+    fixed_income_status["treasury_bill_spread"] = tbill_result["status"]
+    if tbill_result["status"] == "ok":
+        outlook["tbill_spread_date"] = str(tbill_result["date"])
 
-    if isinstance(outlook, dict):
+    curve_data = load_analysis_csv("clean_yield_curve.csv")
+    curve_result = calculate_yield_curve_slope(curve_data)
+    outlook["short_yield"] = (
+        curve_result["short_yield"]
+        if curve_result["status"] == "ok"
+        else np.nan
+    )
+    outlook["long_yield"] = (
+        curve_result["long_yield"]
+        if curve_result["status"] == "ok"
+        else np.nan
+    )
+    outlook["curve_slope"] = (
+        curve_result["slope_percentage_points"]
+        if curve_result["status"] == "ok"
+        else np.nan
+    )
+    fixed_income_status["yield_curve"] = curve_result["status"]
 
-        for _key, _verified_value in (
-            _outlook_verified_fixed_income.items()
-        ):
-
-            _current_value = outlook.get(
-                _key,
-                np.nan
-            )
-
-            try:
-                _missing = pd.isna(
-                    _current_value
-                )
-            except Exception:
-                _missing = True
-
-            if _missing:
-                outlook[_key] = _verified_value
+    bond_data = load_analysis_csv("clean_nse_bond_index.csv")
+    index_result = calculate_index_performance(bond_data)
+    outlook["bond_return"] = (
+        index_result["sample_return"]
+        if index_result["status"] == "ok"
+        else np.nan
+    )
+    outlook["bond_index_latest_value"] = (
+        index_result["latest_index_value"]
+        if index_result["status"] == "ok"
+        else np.nan
+    )
+    fixed_income_status["bond_index"] = index_result["status"]
+    outlook["fixed_income_source_status"] = fixed_income_status
 
     if calculation_error:
 
@@ -4159,16 +4021,12 @@ elif page == "12-Month Outlook":
             lambda x: f"{x:.4f} pp"
         ),
         (
-            "Bond Index - Latest Observed Return",
+            "Bond Index - Observed Sample Return",
             outlook.get(
                 "bond_return",
                 np.nan
             ),
-            lambda x: (
-                f"{x * 100:.2f}%"
-                if abs(x) <= 1
-                else f"{x:.2f}%"
-            )
+            lambda x: f"{x * 100:.2f}%"
         ),
         (
             "Inflation - Latest Value",
@@ -4308,20 +4166,8 @@ elif page == "12-Month Outlook":
         {
             "Metric": "bond_index_latest_observed_return",
             "Observed Value": (
-                (
-                    f'{outlook["bond_return"] * 100:.2f}%'
-                    if abs(
-                        outlook["bond_return"]
-                    ) <= 1
-                    else
-                    f'{outlook["bond_return"]:.2f}%'
-                )
-                if pd.notna(
-                    outlook.get(
-                        "bond_return",
-                        np.nan
-                    )
-                )
+                f'{outlook["bond_return"] * 100:.2f}%'
+                if pd.notna(outlook.get("bond_return", np.nan))
                 else "DATA UNAVAILABLE"
             )
         },
@@ -4408,7 +4254,11 @@ elif page == "12-Month Outlook":
     # ============================================================
 
     st.subheader(
-        "12-Month Scenario Framework"
+        "12-Month Scenario Monitoring Framework"
+    )
+    st.caption(
+        "These are conditional monitoring scenarios, not trained forecasting models, "
+        "probability estimates or guaranteed returns. Missing observations remain unavailable."
     )
 
     inflation = outlook.get(
