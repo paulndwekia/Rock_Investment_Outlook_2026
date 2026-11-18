@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
   Activity, BarChart3, BookOpen, ChevronDown, Database, Landmark,
   LayoutDashboard, Menu, RefreshCw, ShieldCheck, X, Globe2, Clock3
