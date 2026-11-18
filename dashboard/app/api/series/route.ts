@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchPDMODomesticDebt, PDMO_DOMESTIC_DATASET } from "@/lib/public-data";
+import { fetchPDMOPublicData } from "@/lib/public-data";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -42,28 +42,25 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ status: "ok", market_series: observations }, { headers: { "Cache-Control": "no-store" } });
       }
     } catch {
-      // Continue to the public PDMO source below.
+      // Fall through to the official public Treasury feeds.
     }
-  }
-
-  if (dataset !== PDMO_DOMESTIC_DATASET) {
-    return NextResponse.json(
-      { status: "not_found", message: "That dataset is not available from the current public source." },
-      { status: 404, headers: { "Cache-Control": "no-store" } }
-    );
   }
 
   try {
-    const { observations } = await fetchPDMODomesticDebt();
-    const selected = observations.filter((item) => item.series === series).slice(-limit);
-    if (selected.length === 0) {
+    const { observations, available_series } = await fetchPDMOPublicData();
+    const selected = available_series.find((item) => item.dataset === dataset && item.series === series);
+    if (!selected) {
       return NextResponse.json(
-        { status: "not_found", message: "The selected series was not found in the PDMO dataset." },
+        { status: "not_found", message: "That dataset and series are not available in the current public Treasury feeds." },
         { status: 404, headers: { "Cache-Control": "no-store" } }
       );
     }
+
+    const rows = observations
+      .filter((item) => item.dataset === dataset && item.series === series)
+      .slice(-limit);
     return NextResponse.json(
-      { status: "ok", market_series: selected },
+      { status: "ok", market_series: rows },
       { headers: { "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400" } }
     );
   } catch {
