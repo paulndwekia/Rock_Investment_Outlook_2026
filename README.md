@@ -1,5 +1,15 @@
 # Kenya Investment Intelligence
 
+## Current dashboard and data-governance status
+
+The Next.js dashboard is available at https://kenya-investment-intelligence.vercel.app. It displays a verified-data waiting state until an authorised feed is configured. No market figures are simulated.
+
+The current repository visibility must be checked before distributing source material. It has contained Rock Data Plus source exports and derived extracts; access to an export alone does not establish permission to redistribute it. See [SECURITY.md](SECURITY.md) for the repository cleanup and data-handling procedure.
+
+The dashboard source is under review in [Pull Request #1](https://github.com/paulndwekia/Rock_Investment_Outlook_2026/pull/1). The deployed site is a snapshot and is not yet wired to deploy automatically from GitHub.
+
+---
+
 ## A Kenyan Market Research, Risk and Investment Outlook Platform
 
 **Kenya Investment Intelligence** is a quantitative research platform designed to bring Kenyan equity, macroeconomic, fixed-income and risk analysis into one interactive research environment.
