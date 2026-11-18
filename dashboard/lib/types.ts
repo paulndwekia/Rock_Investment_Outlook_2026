@@ -20,6 +20,9 @@ export type AvailableSeries = {
   first_observed_at: string | null;
   last_observed_at: string | null;
   source_name: string | null;
+  source_url?: string;
+  source_page?: string;
+  source_updated_at?: string | null;
 };
 export type OverviewResponse = {
   status: "ok" | "not_configured" | "unavailable";
@@ -31,8 +34,6 @@ export type OverviewResponse = {
   datasets?: DatasetSummary[];
   available_series?: AvailableSeries[];
   market_series?: Observation[];
-  source_url?: string;
-  source_page?: string;
   source_updated_at?: string | null;
   message?: string;
 };
