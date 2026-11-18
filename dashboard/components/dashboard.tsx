@@ -9,7 +9,7 @@ import {
 import {
   Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from "recharts";
-import type { OverviewResponse } from "@/lib/types";
+import type { AvailableSeries, Observation, OverviewResponse } from "@/lib/types";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard },
@@ -102,6 +102,10 @@ const sectionCopy: Record<string, { kicker: string; title: string; body: string;
   }
 };
 
+function seriesKey(item: Pick<AvailableSeries, "dataset" | "series" | "unit">) {
+  return JSON.stringify([item.dataset, item.series, item.unit ?? null]);
+}
+
 function dateLabel(value?: string | null) {
   if (!value) return "Not available";
   const parsed = new Date(value);
@@ -131,6 +135,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive] = useState("Overview");
+  const [marketSeries, setMarketSeries] = useState<Observation[]>([]);
+  const [selectedSeries, setSelectedSeries] = useState("");
+  const [seriesLoading, setSeriesLoading] = useState(false);
+  const [seriesError, setSeriesError] = useState("");
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -138,8 +146,22 @@ export default function Dashboard() {
       const response = await fetch("/api/overview", { cache: "no-store" });
       const payload = await response.json() as OverviewResponse;
       setData(payload);
+      setMarketSeries(payload.market_series ?? []);
+      const initialPoint = payload.market_series?.[0];
+      const initialOption = initialPoint
+        ? payload.available_series?.find((item) =>
+            item.dataset === initialPoint.dataset &&
+            item.series === initialPoint.series &&
+            (item.unit ?? null) === (initialPoint.unit ?? null)
+          )
+        : payload.available_series?.[0];
+      setSelectedSeries(initialOption ? seriesKey(initialOption) : "");
+      setSeriesError("");
     } catch {
       setData({ status: "unavailable", message: "The dashboard could not retrieve its data status." });
+      setMarketSeries([]);
+      setSelectedSeries("");
+      setSeriesError("");
     } finally {
       setLoading(false);
     }
@@ -147,7 +169,8 @@ export default function Dashboard() {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  const chartData = useMemo(() => (data.market_series ?? []).map((point) => ({
+  const availableSeries = data.available_series ?? [];
+  const chartData = useMemo(() => marketSeries.map((point) => ({
     observed_at: point.observed_at,
     date: new Date(point.observed_at).toLocaleDateString("en-KE", { day: "2-digit", month: "short" }),
     dataset: point.dataset,
@@ -155,7 +178,34 @@ export default function Dashboard() {
     value: point.value,
     source: point.source_name,
     unit: point.unit
-  })), [data.market_series]);
+  })), [marketSeries]);
+
+  const loadSelectedSeries = useCallback(async (key: string) => {
+    const chosen = availableSeries.find((item) => seriesKey(item) === key);
+    if (!chosen) return;
+
+    setSelectedSeries(key);
+    setSeriesLoading(true);
+    setSeriesError("");
+    try {
+      const query = new URLSearchParams({
+        dataset: chosen.dataset,
+        series: chosen.series,
+        limit: "120"
+      });
+      const response = await fetch(`/api/series?${query.toString()}`, { cache: "no-store" });
+      const payload = await response.json() as { status: string; market_series?: Observation[]; message?: string };
+      if (!response.ok || payload.status !== "ok") {
+        throw new Error(payload.message ?? "The selected series could not be loaded.");
+      }
+      setMarketSeries(payload.market_series ?? []);
+    } catch (error) {
+      setSeriesError(error instanceof Error ? error.message : "The selected series could not be loaded.");
+      setMarketSeries([]);
+    } finally {
+      setSeriesLoading(false);
+    }
+  }, [availableSeries]);
 
   const latestUpdate = dateLabel(data.latest_observation);
   const connected = data.status === "ok";
@@ -253,10 +303,27 @@ export default function Dashboard() {
                 <h3 className="mt-1 text-base font-semibold text-[#263139]">Market series</h3>
                 <p className="mt-1 text-xs text-[#858B86]">The chart will plot imported observations, not illustrative values.</p>
               </div>
-              <span className="rounded-md bg-[#F4F0E7] px-2.5 py-1.5 text-[10px] font-medium text-[#7D6942]">Source-linked</span>
+              <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:min-w-[240px]">
+                <label htmlFor="market-series" className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#8B8F88]">Select a published series</label>
+                <select
+                  id="market-series"
+                  value={selectedSeries}
+                  onChange={(event) => { void loadSelectedSeries(event.target.value); }}
+                  disabled={!connected || availableSeries.length === 0 || seriesLoading}
+                  className="h-10 max-w-full rounded-lg border border-[#E0DDD5] bg-white px-3 text-xs text-[#46514D] outline-none transition focus:border-[#B89552] disabled:cursor-not-allowed disabled:bg-[#F7F6F2] disabled:text-[#9A9F99]"
+                >
+                  {availableSeries.length === 0 && <option value="">No published series</option>}
+                  {availableSeries.map((item) => (
+                    <option key={seriesKey(item)} value={seriesKey(item)}>
+                      {item.dataset} · {item.series}{item.unit ? ` · ${item.unit}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+            {seriesError && <p role="alert" className="mt-3 text-xs text-[#A34D3F]">{seriesError}</p>}
             <div className="mt-5 h-[260px]">
-              {chartData.length > 1 ? <ResponsiveContainer width="100%" height="100%">
+              {seriesLoading ? <div className="flex h-full items-center justify-center rounded-lg bg-[#FAF9F6] text-xs text-[#858B86]">Loading selected observations…</div> : chartData.length > 1 ? <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                   <defs><linearGradient id="marketGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#B89552" stopOpacity={0.22} /><stop offset="95%" stopColor="#B89552" stopOpacity={0.01} /></linearGradient></defs>
                   <CartesianGrid vertical={false} stroke="#EEECE6" />
