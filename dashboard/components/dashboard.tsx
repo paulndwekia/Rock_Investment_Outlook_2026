@@ -171,6 +171,7 @@ export default function Dashboard() {
   useEffect(() => { void refresh(); }, [refresh]);
 
   const availableSeries = data.available_series ?? [];
+  const selectedSeriesMeta = availableSeries.find((item) => seriesKey(item) === selectedSeries);
   const chartData = useMemo(() => marketSeries.map((point) => ({
     observed_at: point.observed_at,
     date: new Date(point.observed_at).toLocaleDateString("en-KE", { day: "2-digit", month: "short" }),
@@ -354,8 +355,9 @@ export default function Dashboard() {
             {chartData.length > 0 && <div className="mt-2 space-y-1 text-[10px] leading-5 text-[#90958F]">
               <p>Series: {chartData[chartData.length - 1]?.series} · Dataset: {chartData[chartData.length - 1]?.dataset} · Unit: {chartData[chartData.length - 1]?.unit ?? "not specified"}</p>
               <p>Source: {chartData[chartData.length - 1]?.source}
-                {data.source_updated_at ? ` · Source update: ${dateLabel(data.source_updated_at)}` : ""}
-                {data.source_url && <> · <a href={data.source_url} target="_blank" rel="noreferrer" className="font-semibold text-[#8A7040] underline underline-offset-2">Original data</a></>}
+                {selectedSeriesMeta?.source_updated_at ? ` · Source update: ${dateLabel(selectedSeriesMeta.source_updated_at)}` : ""}
+                {selectedSeriesMeta?.source_url && <> · <a href={selectedSeriesMeta.source_url} target="_blank" rel="noreferrer" className="font-semibold text-[#8A7040] underline underline-offset-2">Original data</a></>}
+                {selectedSeriesMeta?.source_page && <> · <a href={selectedSeriesMeta.source_page} target="_blank" rel="noreferrer" className="font-semibold text-[#8A7040] underline underline-offset-2">Source notes</a></>}
               </p>
             </div>}
           </div>
