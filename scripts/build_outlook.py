@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from research_models import (
+    calculate_market_regime_from_monthly,
     calculate_index_performance,
     calculate_tbill_spread,
     calculate_yield_curve_slope,
@@ -54,54 +55,9 @@ def numeric(values: pd.Series) -> pd.Series:
     return result.where(np.isfinite(result))
 
 
-def calculate_market_regime_from_monthly(frame: pd.DataFrame) -> dict[str, Any]:
-    required = {"Month", "Market_Return"}
-    if not required.issubset(frame.columns):
-        return {"status": "unavailable", "reason": "Monthly market-return file is missing required columns"}
-
-    monthly = frame[["Month", "Market_Return"]].copy()
-    monthly["Month"] = pd.PeriodIndex(monthly["Month"].astype(str), freq="M")
-    monthly["Market_Return"] = numeric(monthly["Market_Return"])
-    monthly = (
-        monthly.dropna(subset=["Month", "Market_Return"])
-        .sort_values("Month")
-        .drop_duplicates("Month", keep="last")
-    )
-    recent = monthly.tail(12)
-    ordinals = recent["Month"].map(lambda period: period.ordinal).to_numpy()
-    complete = len(recent) == 12 and bool(np.all(np.diff(ordinals) == 1))
-    returns = recent["Market_Return"]
-
-    if not complete:
-        return {
-            "status": "incomplete",
-            "months_available": int(len(recent)),
-            "is_full_consecutive_12m": False,
-            "historical_return_12m": None,
-            "annualised_monthly_volatility": None,
-            "maximum_drawdown_12m": None,
-            "positive_month_share": None,
-        }
-
-    wealth = (1.0 + returns).cumprod()
-    drawdown = wealth / wealth.cummax() - 1.0
-    values = {
-        "status": "passed",
-        "months_available": 12,
-        "is_full_consecutive_12m": True,
-        "historical_return_12m": float(wealth.iloc[-1] - 1.0),
-        "annualised_monthly_volatility": float(returns.std(ddof=1) * np.sqrt(12.0)),
-        "maximum_drawdown_12m": float(drawdown.min()),
-        "positive_month_share": float((returns > 0).mean()),
-    }
-    if not np.isfinite([
-        values["historical_return_12m"],
-        values["annualised_monthly_volatility"],
-        values["maximum_drawdown_12m"],
-        values["positive_month_share"],
-    ]).all():
-        return {"status": "failed", "reason": "Non-finite market-regime output"}
-    return values
+def calculate_market_regime_from_monthly_input(frame: pd.DataFrame) -> dict[str, Any]:
+    """Delegate to the shared tested market-regime summariser."""
+    return calculate_market_regime_from_monthly(frame)
 
 
 def sanitise(value: Any) -> Any:
@@ -128,7 +84,7 @@ metrics: dict[str, Any] = {}
 # ---------------------------------------------------------------------------
 print("\n[1] MARKET REGIME")
 regime_monthly = read_csv("market_regime_monthly.csv")
-market_regime = calculate_market_regime_from_monthly(regime_monthly)
+market_regime = calculate_market_regime_from_monthly_input(regime_monthly)
 metrics["market_regime"] = market_regime
 
 # ---------------------------------------------------------------------------
