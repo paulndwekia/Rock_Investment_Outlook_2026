@@ -227,7 +227,7 @@ def test_release_gate_rejects_missing_required_model_outputs():
 
 def test_contiguous_drawdown_does_not_bridge_missing_return_gaps():
     result = calculate_return_risk_statistics(
-        pd.Series([0.5] + [np.nan] + [-0.2] * 30),
+        pd.Series([0.5, np.nan, -0.2] + [0.1] * 29),
         min_risk_observations=30,
     )
 
