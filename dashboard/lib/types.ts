@@ -23,6 +23,7 @@ export type AvailableSeries = {
 };
 export type OverviewResponse = {
   status: "ok" | "not_configured" | "unavailable";
+  provider?: "PDMO" | "authorised-api";
   generated_at?: string;
   latest_observation?: string | null;
   total_observations?: number;
@@ -30,5 +31,8 @@ export type OverviewResponse = {
   datasets?: DatasetSummary[];
   available_series?: AvailableSeries[];
   market_series?: Observation[];
+  source_url?: string;
+  source_page?: string;
+  source_updated_at?: string | null;
   message?: string;
 };
