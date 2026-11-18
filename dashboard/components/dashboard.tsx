@@ -3,9 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Activity, ArrowDownRight, ArrowUpRight, BarChart3, BookOpen, ChevronDown,
-  Database, FileText, Landmark, LayoutDashboard, Menu, RefreshCw, ShieldCheck,
-  SlidersHorizontal, X, Globe2, Clock3
+  Activity, BarChart3, BookOpen, ChevronDown, Database, Landmark,
+  LayoutDashboard, Menu, RefreshCw, ShieldCheck, X, Globe2, Clock3
 } from "lucide-react";
 import {
   Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis
@@ -21,6 +20,87 @@ const navigation = [
   { label: "Research notes", icon: BookOpen },
   { label: "Data & sources", icon: Database }
 ];
+
+const sectionCopy: Record<string, { kicker: string; title: string; body: string; topics: string[]; note: string }> = {
+  "Equity research": {
+    kicker: "Nairobi Securities Exchange",
+    title: "Equity research",
+    body: "Examine listed-security performance and market activity through dated observations, company information and clearly defined calculations. Security-level comparisons should use consistent periods and disclose gaps in the underlying data.",
+    topics: [
+      "Security price and trading history",
+      "Turnover and market activity",
+      "Market breadth and concentration",
+      "Company fundamentals and valuation",
+      "Foreign investor flows"
+    ],
+    note: "Historical price, volume and flow data must be checked for corporate actions, missing sessions, currency units and source permissions before it is used in comparative analysis."
+  },
+  "Fixed income": {
+    kicker: "Rates and government securities",
+    title: "Fixed income research",
+    body: "Follow the Kenyan government securities market, from Treasury-bill auction outcomes to bond yields and the shape of the yield curve. Keep observed market quotations separate from derived measures and model estimates.",
+    topics: [
+      "Treasury-bill auction results",
+      "Government bond yields and prices",
+      "Yield curve and term structure",
+      "Auction performance and issuance",
+      "Duration, convexity and interest-rate risk"
+    ],
+    note: "Yield observations must retain their tenor, quotation convention, observation date and source. Do not combine auction rates, secondary-market yields and modelled curve points as though they were the same measure."
+  },
+  "Macro indicators": {
+    kicker: "Kenyan economic conditions",
+    title: "Macroeconomic indicators",
+    body: "Bring together published indicators that help explain the operating environment for Kenyan assets. Each series should carry its reporting period, publication date, unit and originating institution.",
+    topics: [
+      "Inflation and consumer prices",
+      "Exchange rates",
+      "Liquidity and monetary conditions",
+      "Purchasing Managers’ Index",
+      "Foreign-exchange reserves and fuel prices"
+    ],
+    note: "Economic indicators are not always published at the same frequency. Comparisons should use the correct reference period and disclose revisions, lags and differences in definitions."
+  },
+  "Risk analysis": {
+    kicker: "Measurement and uncertainty",
+    title: "Market risk analysis",
+    body: "Assess historical risk and test how conclusions change under clearly stated assumptions. Risk measures describe observed or modelled behaviour; they are not promises about future outcomes.",
+    topics: [
+      "Historical volatility and drawdowns",
+      "Correlation and co-movement",
+      "Liquidity and concentration",
+      "Scenario assumptions and sensitivity",
+      "Data quality and model limitations"
+    ],
+    note: "Every risk statistic should identify its sample period, frequency, return convention and methodology. Forward-looking scenarios must be labelled as conditional analysis rather than forecasts."
+  },
+  "Research notes": {
+    kicker: "Research record",
+    title: "Research notes",
+    body: "Keep the investment thesis, supporting evidence, analytical choices and subsequent revisions together. Notes should make it possible for another researcher to understand how a conclusion was reached.",
+    topics: [
+      "Kenya Investment Outlook 2026",
+      "Research Challenge methodology",
+      "Investment themes and catalysts",
+      "Assumptions and limitations",
+      "Research updates and revisions"
+    ],
+    note: "The research record should distinguish sourced facts, calculations, interpretation and scenario assumptions. Update a conclusion when its supporting evidence changes, and retain the date and reason for the revision."
+  },
+  "Data & sources": {
+    kicker: "Provenance and permissions",
+    title: "Data and sources",
+    body: "A reliable research dashboard needs more than a chart. It needs a record of where each observation came from, when it was recorded, how it was transformed and whether it may be displayed.",
+    topics: [
+      "Source register and licence status",
+      "Observation dates and import times",
+      "Dataset validation and audit trail",
+      "Definitions, units and transformations",
+      "Approved exports and attribution"
+    ],
+    note: "Rock Data Plus integration remains subject to Rock Investment Bank’s written approval and the applicable data terms. Until an authorised API or export arrangement is confirmed, do not automate access or republish restricted source records."
+  }
+};
 
 function dateLabel(value?: string | null) {
   if (!value) return "Not available";
