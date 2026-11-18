@@ -115,11 +115,11 @@ function dateLabel(value?: string | null) {
   });
 }
 
-function StatusPill({ status }: { status: OverviewResponse["status"] }) {
+function StatusPill({ status, provider }: { status: OverviewResponse["status"]; provider?: OverviewResponse["provider"] }) {
   const styles = status === "ok"
     ? "bg-emerald-50 text-emerald-800 border-emerald-200"
     : "bg-amber-50 text-amber-900 border-amber-200";
-  const label = status === "ok" ? "Data service connected" : status === "unavailable" ? "Data service unavailable" : "Awaiting approved data feed";
+  const label = status !== "ok" ? (status === "unavailable" ? "Data source unavailable" : "Awaiting approved data feed") : provider === "PDMO" ? "Official public data connected" : "Authorised data feed connected";
   return <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${styles}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{label}</span>;
 }
 
@@ -258,7 +258,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <StatusPill status={data.status} />
+          <StatusPill status={data.status} provider={data.provider} />
           <InstallPwaButton />
           <button onClick={() => void refresh()} disabled={loading} className="flex h-9 items-center gap-2 rounded-lg border border-[#E0DDD5] bg-white px-3 text-xs font-medium text-[#56615E] transition hover:border-[#C5AA73] disabled:opacity-50">
             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /><span className="hidden sm:inline">Refresh</span>
@@ -302,8 +302,8 @@ export default function Dashboard() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[.16em] text-[#A08A5D]">Historical observations</p>
-                <h3 className="mt-1 text-base font-semibold text-[#263139]">Market series</h3>
-                <p className="mt-1 text-xs text-[#858B86]">The chart will plot imported observations, not illustrative values.</p>
+                <h3 className="mt-1 text-base font-semibold text-[#263139]">Selected data series</h3>
+                <p className="mt-1 text-xs text-[#858B86]">Original dated observations from the selected source; no interpolated values.</p>
               </div>
               <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:min-w-[240px]">
                 <label htmlFor="market-series" className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#8B8F88]">Select a published series</label>
@@ -351,7 +351,13 @@ export default function Dashboard() {
                 <p className="mt-1 max-w-sm text-xs leading-5 text-[#8A908B]">When an authorised dataset is ingested, its actual observations and dates will appear here.</p>
               </div>}
             </div>
-            {chartData.length > 0 && <p className="mt-2 text-[10px] leading-5 text-[#90958F]">Series: {chartData[chartData.length - 1]?.series} · Dataset: {chartData[chartData.length - 1]?.dataset} · Unit: {chartData[chartData.length - 1]?.unit ?? "not specified"} · Source: {chartData[chartData.length - 1]?.source}</p>}
+            {chartData.length > 0 && <div className="mt-2 space-y-1 text-[10px] leading-5 text-[#90958F]">
+              <p>Series: {chartData[chartData.length - 1]?.series} · Dataset: {chartData[chartData.length - 1]?.dataset} · Unit: {chartData[chartData.length - 1]?.unit ?? "not specified"}</p>
+              <p>Source: {chartData[chartData.length - 1]?.source}
+                {data.source_updated_at ? ` · Source update: ${dateLabel(data.source_updated_at)}` : ""}
+                {data.source_url && <> · <a href={data.source_url} target="_blank" rel="noreferrer" className="font-semibold text-[#8A7040] underline underline-offset-2">Original data</a></>}
+              </p>
+            </div>}
           </div>
 
           <div className="rounded-xl border border-[#E7E3DA] bg-white p-5 shadow-soft md:p-6">
