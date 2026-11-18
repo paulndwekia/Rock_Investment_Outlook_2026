@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchPDMODomesticDebt } from "@/lib/public-data";
+import { fetchPDMOPublicData } from "@/lib/public-data";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -20,19 +20,19 @@ export async function GET() {
         return NextResponse.json(payload, { headers: { "Cache-Control": "no-store" } });
       }
     } catch {
-      // Fall through to the public government dataset rather than leaving the workspace empty.
+      // Continue with official public Treasury data if the authorised service is unavailable.
     }
   }
 
   try {
-    const { overview } = await fetchPDMODomesticDebt();
+    const { overview } = await fetchPDMOPublicData();
     return NextResponse.json(overview, {
       headers: { "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400" }
     });
   } catch {
     return NextResponse.json({
       status: "unavailable",
-      message: "Neither the authorised research API nor the public PDMO data source is currently reachable. No market figures are simulated."
+      message: "Neither the authorised research API nor the public National Treasury data sources are reachable. No market figures are simulated."
     }, { status: 200, headers: { "Cache-Control": "no-store" } });
   }
 }
