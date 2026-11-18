@@ -10,6 +10,7 @@ from scipy.stats import pearsonr
 
 from research_models import (
     calculate_market_regime,
+    classify_market_regime,
     calculate_rolling_risk,
     calculate_security_metrics,
     prepare_equity_panel,
@@ -136,6 +137,7 @@ rolling_df.to_csv(
 # the official NSE index. A 12-month return is only emitted when
 # all twelve consecutive calendar months are present.
 market_regime = calculate_market_regime(df, months_required=12)
+regime_classification = classify_market_regime(market_regime)
 market_regime_monthly = market_regime.pop("monthly")
 market_regime_monthly.to_csv(
     OUT / "market_regime_monthly.csv",
@@ -165,6 +167,7 @@ model_validation = {
     "full_period_return_model": return_gate,
     "market_regime_model": {
         "status": market_regime.get("status"),
+        "classification": regime_classification,
         "months_available": market_regime.get("months_available", 0),
         "is_full_consecutive_12m": market_regime.get("is_full_consecutive_12m", False),
         "historical_return_12m_available": bool(
@@ -186,6 +189,7 @@ model_validation["overall_status"] = (
         and return_gate["status"] == "passed"
         and market_regime.get("status") == "ok"
         and market_regime.get("is_full_consecutive_12m", False)
+        and regime_classification.get("status") == "ok"
     )
     else "incomplete"
 )
@@ -483,6 +487,10 @@ research = {
     "model_validation": model_validation,
     "market_regime": {
         "status": market_regime.get("status"),
+        "classification": regime_classification,
+        "historical_return_12m": market_regime.get("historical_return_12m"),
+        "annualised_monthly_volatility": market_regime.get("annualised_monthly_volatility"),
+        "maximum_drawdown_12m": market_regime.get("maximum_drawdown_12m"),
         "months_available": market_regime.get("months_available", 0),
         "is_full_consecutive_12m": market_regime.get("is_full_consecutive_12m", False),
     },
