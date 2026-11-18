@@ -14,6 +14,15 @@ from scipy.stats import pearsonr
 
 
 def _finite_numeric(values: pd.Series) -> pd.Series:
+    if values.dtype == object or pd.api.types.is_string_dtype(values.dtype):
+        values = (
+            values.astype("string")
+            .str.strip()
+            .str.replace(",", "", regex=False)
+            .str.replace("%", "", regex=False)
+            .str.replace("KES", "", regex=False)
+            .str.replace("KSh", "", regex=False)
+        )
     numeric = pd.to_numeric(values, errors="coerce")
     return numeric.where(np.isfinite(numeric))
 
@@ -108,6 +117,48 @@ def _maximum_drawdown_by_contiguous_segment(returns: pd.Series) -> float:
     return min(drawdowns) if drawdowns else float("nan")
 
 
+def calculate_return_risk_statistics(
+    returns: pd.Series,
+    *,
+    min_risk_observations: int = 30,
+    annualisation_days: int = 252,
+) -> dict[str, Any]:
+    """Calculate volatility and drawdown from a return series without bridging gaps."""
+    values = _finite_numeric(returns)
+    valid = values.dropna()
+    count = int(len(valid))
+    if count < min_risk_observations:
+        return {
+            "status": "insufficient_observations",
+            "observations": count,
+            "annualised_volatility": float("nan"),
+            "maximum_drawdown": float("nan"),
+            "positive_return_share": float("nan"),
+        }
+    if annualisation_days <= 0:
+        raise ValueError("annualisation_days must be positive")
+
+    volatility = float(valid.std(ddof=1) * np.sqrt(annualisation_days))
+    drawdown = _maximum_drawdown_by_contiguous_segment(values)
+    positive_share = float((valid > 0).mean())
+    results = (volatility, drawdown, positive_share)
+    if not np.isfinite(results).all():
+        return {
+            "status": "calculation_failed",
+            "observations": count,
+            "annualised_volatility": float("nan"),
+            "maximum_drawdown": float("nan"),
+            "positive_return_share": float("nan"),
+        }
+    return {
+        "status": "ok",
+        "observations": count,
+        "annualised_volatility": volatility,
+        "maximum_drawdown": drawdown,
+        "positive_return_share": positive_share,
+    }
+
+
 def calculate_security_metrics(
     prepared: pd.DataFrame,
     *,
@@ -148,17 +199,14 @@ def calculate_security_metrics(
             else float("nan")
         )
 
-        volatility = (
-            float(returns.std(ddof=1) * np.sqrt(annualisation_days))
-            if enough_returns
-            else float("nan")
+        risk_stats = calculate_return_risk_statistics(
+            group["Risk_Return"],
+            min_risk_observations=min_risk_observations,
+            annualisation_days=annualisation_days,
         )
-        max_drawdown = (
-            _maximum_drawdown_by_contiguous_segment(group["Risk_Return"])
-            if enough_returns
-            else float("nan")
-        )
-        positive_days = float((returns > 0).mean()) if enough_returns else float("nan")
+        volatility = risk_stats["annualised_volatility"]
+        max_drawdown = risk_stats["maximum_drawdown"]
+        positive_days = risk_stats["positive_return_share"]
 
         volume = _finite_numeric(group["Volume"]).dropna()
         foreign_flow = _finite_numeric(group["Net_Foreign_Flow"]).dropna()
@@ -294,6 +342,39 @@ def calculate_correlation(
         "observations": count,
         "correlation": float(correlation),
         "p_value": float(p_value),
+    }
+
+
+def calculate_index_performance(
+    frame: pd.DataFrame,
+    *,
+    date_col: str = "Date",
+    value_col: str = "Index Value",
+) -> dict[str, Any]:
+    """Calculate observed index sample return from dated index levels."""
+    if not {date_col, value_col}.issubset(frame.columns):
+        return {"status": "unavailable", "reason": "Required index date/level fields are missing"}
+    data = frame[[date_col, value_col]].copy()
+    data["Date"] = pd.to_datetime(data[date_col], errors="coerce")
+    data["Index_Value"] = _finite_numeric(data[value_col])
+    data = (
+        data.dropna(subset=["Date", "Index_Value"])
+        .sort_values("Date")
+        .drop_duplicates("Date", keep="last")
+    )
+    data = data[data["Index_Value"] > 0]
+    if len(data) < 2:
+        return {"status": "unavailable", "reason": "At least two positive dated index levels are required"}
+    first = float(data.iloc[0]["Index_Value"])
+    last = float(data.iloc[-1]["Index_Value"])
+    return {
+        "status": "ok",
+        "first_date": data.iloc[0]["Date"],
+        "last_date": data.iloc[-1]["Date"],
+        "first_index_value": first,
+        "latest_index_value": last,
+        "sample_return": last / first - 1.0,
+        "observations": int(len(data)),
     }
 
 
