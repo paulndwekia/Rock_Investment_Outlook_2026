@@ -32,7 +32,14 @@ def verify_read_token(authorization: str | None = Header(default=None)):
     expected = os.getenv("API_READ_TOKEN")
     if not expected:
         raise HTTPException(status_code=503, detail="API access is not configured")
-    supplied = authorization.removeprefix("Bearer ").strip() if authorization else ""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Unauthorised")
+
+    parts = authorization.strip().split()
+    if len(parts) != 2 or parts[0].casefold() != "bearer":
+        raise HTTPException(status_code=401, detail="Unauthorised")
+
+    supplied = parts[1]
     if not secrets.compare_digest(supplied, expected):
         raise HTTPException(status_code=401, detail="Unauthorised")
     return True
