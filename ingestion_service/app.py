@@ -1,19 +1,25 @@
 import os
+import secrets
 from datetime import datetime, timezone
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 from psycopg.rows import dict_row
 
-app = FastAPI(title="Kenya Investment Intelligence Data API", version="1.0.0")
+app = FastAPI(
+    title="Kenya Investment Intelligence Data API",
+    version="1.0.0",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 
-# Read-only API. Do not add a public write/import endpoint here.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin.strip()],
     allow_credentials=False,
     allow_methods=["GET"],
-    allow_headers=["Accept"],
+    allow_headers=["Accept", "Authorization"],
 )
 
 def connection():
@@ -21,6 +27,15 @@ def connection():
     if not dsn:
         raise RuntimeError("DATABASE_URL is not configured")
     return psycopg.connect(dsn, row_factory=dict_row, connect_timeout=5)
+
+def verify_read_token(authorization: str | None = Header(default=None)):
+    expected = os.getenv("API_READ_TOKEN")
+    if not expected:
+        raise HTTPException(status_code=503, detail="API access is not configured")
+    supplied = authorization.removeprefix("Bearer ").strip() if authorization else ""
+    if not secrets.compare_digest(supplied, expected):
+        raise HTTPException(status_code=401, detail="Unauthorised")
+    return True
 
 @app.get("/health")
 def health():
@@ -32,7 +47,7 @@ def health():
         raise HTTPException(status_code=503, detail="Data store unavailable")
 
 @app.get("/v1/overview")
-def overview():
+def overview(_: bool = Depends(verify_read_token)):
     try:
         with connection() as conn:
             totals = conn.execute("""
@@ -67,15 +82,22 @@ def overview():
             "datasets": [{**row, "last_observed_at": row["last_observed_at"].isoformat() if row["last_observed_at"] else None} for row in datasets],
             "market_series": [{**row, "observed_at": row["observed_at"].isoformat()} for row in series],
         }
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(status_code=503, detail="Research data is temporarily unavailable")
 
 @app.get("/v1/series/{dataset}/{series_name}")
-def get_series(dataset: str, series_name: str, limit: int = Query(default=500, ge=1, le=5000)):
+def get_series(
+    dataset: str,
+    series_name: str,
+    limit: int = Query(default=500, ge=1, le=5000),
+    _: bool = Depends(verify_read_token),
+):
     try:
         with connection() as conn:
             rows = conn.execute("""
-                SELECT observed_at, dataset, series, value, unit, source_name, source_reference
+                SELECT observed_at, dataset, series, value, unit, source_name
                 FROM market_observations
                 WHERE dataset = %s AND series = %s
                 ORDER BY observed_at DESC LIMIT %s
