@@ -11,7 +11,7 @@ The project now has two connected but distinct application layers:
 
 The deployed dashboard build is ready. It intentionally shows an empty data state until an approved data service is configured. It does not publish simulated figures or assume that Rock Data Plus exports may be redistributed.
 
-The dashboard source and ingestion-service work are being reviewed in [Pull Request #1](https://github.com/paulndwekia/Rock_Investment_Outlook_2026/pull/1). Automated checks cover the Next.js build and Python importer tests.
+Review [SECURITY.md](SECURITY.md) before distributing repository content. The repository remains public until its owner changes visibility and a history cleanup is completed.\n\nThe dashboard source and ingestion-service work are being reviewed in [Pull Request #1](https://github.com/paulndwekia/Rock_Investment_Outlook_2026/pull/1). Automated checks cover the Next.js build and Python importer tests.
 
 > **Data permission warning:** this repository currently contains historical research extracts and exported datasets. The report notes that raw Rock Data Plus records should only be redistributed where the source licence permits it. Repository visibility and Git history must be reviewed before any public redistribution. The new ignore rules do not remove files that were already committed.
 
