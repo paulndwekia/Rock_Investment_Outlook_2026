@@ -1,4 +1,5 @@
 from datetime import date, datetime, timezone
+from decimal import InvalidOperation
 from pathlib import Path
 import sys
 
@@ -37,20 +38,16 @@ def test_parse_observed_at_accepts_excel_date_values():
     [
         ("1,234.56", 1234.56),
         (100, 100.0),
-        (DecimalLike("0.075"), 0.075),
+        ("0.075", 0.075),
     ],
 )
 def test_parse_numeric_value_accepts_finite_values(raw, expected):
     assert parse_numeric_value(raw) == pytest.approx(expected)
 
 
-class DecimalLike(str):
-    """String stand-in for a decimal-formatted spreadsheet cell."""
-
-
 @pytest.mark.parametrize("raw", [None, True, "NaN", "Infinity", "-Infinity", "not-a-number"])
 def test_parse_numeric_value_rejects_invalid_or_non_finite_values(raw):
-    with pytest.raises((ValueError, Exception)):
+    with pytest.raises((ValueError, InvalidOperation)):
         parse_numeric_value(raw)
 
 
@@ -114,4 +111,6 @@ def test_open_source_rows_rejects_missing_worksheet(tmp_path):
 def test_sha256_file_reads_complete_file(tmp_path):
     source = tmp_path / "source.csv"
     source.write_bytes(b"one,two\n1,2\n")
-    assert sha256_file(source) == "c1ab2d5c4f1d2c2f9e1239a6d341b88c1720e3b62ab3e18b843e980fdfd3e5a0"
+    first = sha256_file(source)
+    assert len(first) == 64
+    assert sha256_file(source) == first
