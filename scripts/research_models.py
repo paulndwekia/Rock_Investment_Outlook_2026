@@ -431,9 +431,11 @@ def calculate_correlation(
     """Pearson correlation with explicit coverage and degeneracy checks."""
     if min_observations < 3:
         raise ValueError("min_observations must be at least 3")
+    # Align on observation index (dates/periods), not row position.
+    # Cross-market inputs must share actual periods before correlation.
     pair = pd.DataFrame({
-        "left": _finite_numeric(left).reset_index(drop=True),
-        "right": _finite_numeric(right).reset_index(drop=True),
+        "left": _finite_numeric(left),
+        "right": _finite_numeric(right),
     }).dropna()
     count = int(len(pair))
     if count < min_observations:
