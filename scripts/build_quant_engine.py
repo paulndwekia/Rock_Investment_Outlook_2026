@@ -8,7 +8,14 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr
 
-warnings.filterwarnings("ignore")
+from research_models import (
+    calculate_market_regime,
+    calculate_rolling_risk,
+    calculate_security_metrics,
+    prepare_equity_panel,
+    validate_model_outputs,
+)
+
 
 PROJECT = Path.home() / "Desktop" / "Rock_Investment_Outlook_2026"
 DB = PROJECT / "database" / "rock_investment_intelligence.db"
@@ -78,195 +85,122 @@ df["Change_Pct"] = pd.to_numeric(
     errors="coerce"
 )
 
-# Recalculate daily returns safely.
-df = df.sort_values(
-    ["Security", "Date"]
-).reset_index(drop=True)
-
-df["Daily_Return"] = (
-    df.groupby("Security")["Price"]
-    .pct_change()
-)
-
-# Log return only where mathematically defined.
-valid = df["Daily_Return"] > -1
-
-df["Log_Return"] = np.nan
-
-df.loc[valid, "Log_Return"] = np.log1p(
-    df.loc[valid, "Daily_Return"]
-)
+# Validate the price panel before any model uses it.
+df = prepare_equity_panel(df)
 
 print(
-    f"✓ Rows: {len(df):,}"
+    f"✓ Valid positive-price rows: {len(df):,}"
 )
-
 print(
-    f"✓ Securities/series: "
-    f"{df['Security'].nunique():,}"
+    f"✓ Security / benchmark series: {df['Security'].nunique():,}"
 )
-
 print(
-    f"✓ Date range: "
-    f"{df['Date'].min().date()} → "
-    f"{df['Date'].max().date()}"
+    f"✓ Return anomalies flagged: {int(df['Return_Anomaly'].sum()):,}"
 )
 
 # ============================================================
 # 2. SECURITY-LEVEL HISTORICAL METRICS
 # ============================================================
 
-print("\nCalculating security metrics...")
+print("\\nCalculating validated security metrics...")
 
-metrics = []
-
-for security, g in df.groupby("Security"):
-
-    g = g.sort_values("Date")
-
-    prices = g["Price"].dropna()
-    returns = g["Daily_Return"].dropna()
-
-    if len(prices) < 2:
-        continue
-
-    start_price = prices.iloc[0]
-    end_price = prices.iloc[-1]
-
-    total_return = (
-        end_price / start_price - 1
-        if start_price > 0
-        else np.nan
-    )
-
-    days = (
-        g["Date"].max() - g["Date"].min()
-    ).days
-
-    annualized_return = np.nan
-
-    if (
-        days > 365
-        and start_price > 0
-    ):
-        annualized_return = (
-            (end_price / start_price)
-            ** (365 / days)
-            - 1
-        )
-
-    annualized_volatility = np.nan
-
-    if len(returns) > 1:
-        annualized_volatility = (
-            returns.std()
-            * np.sqrt(252)
-        )
-
-    # Wealth index from simple returns.
-    wealth = (
-        1 + returns
-    ).cumprod()
-
-    drawdown = (
-        wealth / wealth.cummax()
-        - 1
-    )
-
-    max_drawdown = (
-        drawdown.min()
-        if len(drawdown)
-        else np.nan
-    )
-
-    average_volume = (
-        g["Volume"].mean()
-    )
-
-    total_foreign_flow = (
-        g["Net_Foreign_Flow"]
-        .sum(min_count=1)
-    )
-
-    positive_days = (
-        (returns > 0).mean()
-        if len(returns)
-        else np.nan
-    )
-
-    metrics.append({
-        "Security": security,
-        "Start_Date": g["Date"].min().date(),
-        "End_Date": g["Date"].max().date(),
-        "Observations": len(g),
-        "First_Price": start_price,
-        "Last_Price": end_price,
-        "Total_Return": total_return,
-        "Annualized_Return": annualized_return,
-        "Annualized_Volatility": annualized_volatility,
-        "Maximum_Drawdown": max_drawdown,
-        "Average_Volume": average_volume,
-        "Total_Net_Foreign_Flow": total_foreign_flow,
-        "Positive_Return_Days": positive_days
-    })
-
-metrics = pd.DataFrame(metrics)
-
+metrics = calculate_security_metrics(
+    df,
+    min_risk_observations=30,
+    annualisation_days=252,
+)
 metrics.to_csv(
     OUT / "security_metrics.csv",
     index=False
 )
 
 print(
-    f"✓ Security metrics: "
-    f"{len(metrics):,} series"
+    f"✓ Security metrics: {len(metrics):,} series"
 )
 
 # ============================================================
 # 3. ROLLING RISK MEASURES
 # ============================================================
 
-rolling = []
-
-for security, g in df.groupby("Security"):
-
-    g = g.sort_values("Date").copy()
-
-    g["Vol_21D"] = (
-        g["Daily_Return"]
-        .rolling(21)
-        .std()
-        * np.sqrt(252)
-    )
-
-    g["Vol_63D"] = (
-        g["Daily_Return"]
-        .rolling(63)
-        .std()
-        * np.sqrt(252)
-    )
-
-    rolling.append(
-        g[
-            [
-                "Date",
-                "Security",
-                "Price",
-                "Daily_Return",
-                "Vol_21D",
-                "Vol_63D"
-            ]
-        ]
-    )
-
-rolling_df = pd.concat(
-    rolling,
-    ignore_index=True
+rolling_df = calculate_rolling_risk(
+    df,
+    windows=(21, 63),
+    annualisation_days=252,
 )
-
 rolling_df.to_csv(
     OUT / "rolling_risk.csv",
     index=False
+)
+
+# A market-regime summary is an equal-weighted sample proxy, not
+# the official NSE index. A 12-month return is only emitted when
+# all twelve consecutive calendar months are present.
+market_regime = calculate_market_regime(df, months_required=12)
+market_regime_monthly = market_regime.pop("monthly")
+market_regime_monthly.to_csv(
+    OUT / "market_regime_monthly.csv",
+    index=False
+)
+
+risk_eligible = metrics[
+    metrics["Valid_Risk_Observations"] >= 30
+].copy()
+risk_gate = validate_model_outputs(
+    risk_eligible,
+    required_numeric=("Annualized_Volatility", "Maximum_Drawdown"),
+)
+
+return_eligible = metrics[
+    (metrics["Return_Anomaly_Count"] == 0)
+    & (metrics["Observations"] >= 2)
+].copy()
+return_gate = validate_model_outputs(
+    return_eligible,
+    required_numeric=("Total_Return",),
+)
+
+model_validation = {
+    "generated_at": datetime.now().isoformat(),
+    "equity_risk_model": risk_gate,
+    "full_period_return_model": return_gate,
+    "market_regime_model": {
+        "status": market_regime.get("status"),
+        "months_available": market_regime.get("months_available", 0),
+        "is_full_consecutive_12m": market_regime.get("is_full_consecutive_12m", False),
+        "historical_return_12m_available": bool(
+            np.isfinite(market_regime.get("historical_return_12m", np.nan))
+        ),
+    },
+    "anomaly_policy": (
+        "Returns beyond +/-200% are flagged; the flagged return and "
+        "the immediately following return are excluded from risk "
+        "calculations. Full-period return is withheld for any series "
+        "with a flagged return."
+    ),
+}
+
+model_validation["overall_status"] = (
+    "passed"
+    if (
+        risk_gate["status"] == "passed"
+        and return_gate["status"] == "passed"
+        and market_regime.get("status") == "ok"
+        and market_regime.get("is_full_consecutive_12m", False)
+    )
+    else "incomplete"
+)
+
+(OUT / "model_validation.json").write_text(
+    json.dumps(model_validation, indent=2, default=str),
+    encoding="utf-8",
+)
+
+print("Model validation:", model_validation["overall_status"])
+print("Risk gate:", risk_gate["status"])
+print("Full-period return gate:", return_gate["status"])
+print(
+    "Twelve-month regime history:",
+    market_regime.get("is_full_consecutive_12m", False),
 )
 
 # ============================================================
@@ -331,9 +265,9 @@ for security, g in benchmark_df.groupby(
         continue
 
     total_return = (
-        prices.iloc[-1] /
-        prices.iloc[0]
-        - 1
+        prices.iloc[-1] / prices.iloc[0] - 1
+        if not g["Return_Anomaly"].fillna(False).any()
+        else np.nan
     )
 
     returns = (
@@ -355,6 +289,7 @@ for security, g in benchmark_df.groupby(
         "End_Date": g["Date"].max().date(),
         "Observations": len(g),
         "Total_Return": total_return,
+        "Return_Anomaly_Count": int(g["Return_Anomaly"].fillna(False).sum()),
         "Annualized_Volatility": volatility
     })
 
@@ -545,9 +480,17 @@ research = {
     "benchmark_series": [
         str(x) for x in benchmarks
     ],
+    "model_validation": model_validation,
+    "market_regime": {
+        "status": market_regime.get("status"),
+        "months_available": market_regime.get("months_available", 0),
+        "is_full_consecutive_12m": market_regime.get("is_full_consecutive_12m", False),
+    },
     "outputs": [
         "security_metrics.csv",
         "rolling_risk.csv",
+        "market_regime_monthly.csv",
+        "model_validation.json",
         "benchmark_data.csv",
         "benchmark_metrics.csv",
         "benchmark_return_correlations.csv",
