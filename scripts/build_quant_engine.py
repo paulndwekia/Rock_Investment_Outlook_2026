@@ -133,6 +133,17 @@ rolling_df.to_csv(
     index=False
 )
 
+rolling_21_valid = rolling_df[["Vol_21D"]].dropna()
+rolling_63_valid = rolling_df[["Vol_63D"]].dropna()
+rolling_21_gate = validate_model_outputs(
+    rolling_21_valid,
+    required_numeric=("Vol_21D",),
+)
+rolling_63_gate = validate_model_outputs(
+    rolling_63_valid,
+    required_numeric=("Vol_63D",),
+)
+
 # A market-regime summary is an equal-weighted sample proxy, not
 # the official NSE index. A 12-month return is only emitted when
 # all twelve consecutive calendar months are present.
@@ -181,31 +192,6 @@ model_validation = {
         "with a flagged return."
     ),
 }
-
-model_validation["overall_status"] = (
-    "passed"
-    if (
-        risk_gate["status"] == "passed"
-        and return_gate["status"] == "passed"
-        and market_regime.get("status") == "ok"
-        and market_regime.get("is_full_consecutive_12m", False)
-        and regime_classification.get("status") == "ok"
-    )
-    else "incomplete"
-)
-
-(OUT / "model_validation.json").write_text(
-    json.dumps(model_validation, indent=2, default=str),
-    encoding="utf-8",
-)
-
-print("Model validation:", model_validation["overall_status"])
-print("Risk gate:", risk_gate["status"])
-print("Full-period return gate:", return_gate["status"])
-print(
-    "Twelve-month regime history:",
-    market_regime.get("is_full_consecutive_12m", False),
-)
 
 # ============================================================
 # 4. IDENTIFY ACTUAL ROCK BENCHMARK SERIES
@@ -306,6 +292,16 @@ benchmark_metrics.to_csv(
     index=False
 )
 
+benchmark_eligible = benchmark_metrics[
+    (benchmark_metrics["Observations"] >= 30)
+    & benchmark_metrics["Total_Return"].notna()
+    & benchmark_metrics["Annualized_Volatility"].notna()
+].copy()
+benchmark_return_gate = validate_model_outputs(
+    benchmark_eligible,
+    required_numeric=("Total_Return", "Annualized_Volatility"),
+)
+
 # ============================================================
 # 6. BENCHMARK CORRELATION MATRIX
 # ============================================================
@@ -388,6 +384,74 @@ foreign_relationships.to_csv(
     OUT / "foreign_flow_relationships.csv",
     index=False
 )
+
+foreign_eligible = foreign_relationships[
+    foreign_relationships["Observations"] >= 30
+].copy() if not foreign_relationships.empty else pd.DataFrame()
+foreign_flow_gate = validate_model_outputs(
+    foreign_eligible,
+    required_numeric=("Foreign_Flow_Return_Correlation", "P_Value"),
+)
+
+# The release gate covers every implemented calculation stage. A model with
+# insufficient observations remains incomplete; it is never marked green just
+# because the script executed without an exception.
+model_validation.update({
+    "rolling_21d_model": rolling_21_gate,
+    "rolling_63d_model": rolling_63_gate,
+    "benchmark_return_model": benchmark_return_gate,
+    "benchmark_correlation_model": {
+        "status": (
+            "passed"
+            if (
+                not correlation.empty
+                and len(benchmarks) >= 2
+                and np.isfinite(
+                    correlation.where(
+                        np.triu(np.ones(correlation.shape), k=1).astype(bool)
+                    ).to_numpy(dtype=float)
+                ).any()
+            )
+            else "incomplete"
+        ),
+        "benchmark_series": int(len(benchmarks)),
+    },
+    "foreign_flow_model": foreign_flow_gate,
+})
+
+required_gates = [
+    risk_gate,
+    return_gate,
+    rolling_21_gate,
+    rolling_63_gate,
+    benchmark_return_gate,
+    foreign_flow_gate,
+]
+all_gates_passed = all(gate.get("status") == "passed" for gate in required_gates)
+model_validation["overall_status"] = (
+    "passed"
+    if (
+        all_gates_passed
+        and market_regime.get("status") == "ok"
+        and market_regime.get("is_full_consecutive_12m", False)
+        and regime_classification.get("status") == "ok"
+        and model_validation["benchmark_correlation_model"]["status"] == "passed"
+    )
+    else "incomplete"
+)
+
+(OUT / "model_validation.json").write_text(
+    json.dumps(model_validation, indent=2, default=str),
+    encoding="utf-8",
+)
+
+print("Model validation:", model_validation["overall_status"])
+for model_name, gate in model_validation.items():
+    if model_name.endswith("_model") or model_name in {
+        "equity_risk_model", "full_period_return_model"
+    }:
+        if isinstance(gate, dict):
+            print(f"  {model_name}: {gate.get('status', gate.get('overall_status', 'not evaluated'))}")
 
 # ============================================================
 # 8. MARKET-WIDE DAILY SNAPSHOT
