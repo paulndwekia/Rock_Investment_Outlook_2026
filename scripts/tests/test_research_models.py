@@ -12,6 +12,7 @@ from research_models import (
     calculate_correlation,
     calculate_index_performance,
     calculate_market_regime,
+    calculate_market_regime_from_monthly,
     classify_market_regime,
     calculate_return_risk_statistics,
     calculate_rolling_risk,
@@ -300,3 +301,25 @@ def test_market_regime_classification_is_unavailable_without_twelve_consecutive_
     })
     assert result["status"] == "insufficient_history"
     assert result["signal"] == "unavailable"
+
+
+def test_monthly_regime_summary_calculates_full_twelve_month_return():
+    frame = pd.DataFrame({
+        "Month": pd.period_range("2025-01", periods=12, freq="M").astype(str),
+        "Market_Return": [0.01] * 12,
+    })
+    result = calculate_market_regime_from_monthly(frame)
+    assert result["status"] == "passed"
+    assert result["is_full_consecutive_12m"] is True
+    assert result["historical_return_12m"] == pytest.approx((1.01 ** 12) - 1)
+    assert result["maximum_drawdown_12m"] == pytest.approx(0.0)
+
+
+def test_monthly_regime_summary_withholds_gapped_monthly_history():
+    months = list(pd.period_range("2025-01", periods=12, freq="M").astype(str))
+    months.pop(5)
+    frame = pd.DataFrame({"Month": months, "Market_Return": [0.01] * len(months)})
+    result = calculate_market_regime_from_monthly(frame)
+    assert result["status"] == "incomplete"
+    assert result["is_full_consecutive_12m"] is False
+    assert np.isnan(result["historical_return_12m"])
