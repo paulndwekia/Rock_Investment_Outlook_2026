@@ -1,4 +1,5 @@
 export type Observation = {
+  dataset: string;
   observed_at: string;
   series: string;
   value: number;
