@@ -323,3 +323,17 @@ def test_monthly_regime_summary_withholds_gapped_monthly_history():
     assert result["status"] == "incomplete"
     assert result["is_full_consecutive_12m"] is False
     assert np.isnan(result["historical_return_12m"])
+
+
+def test_correlation_aligns_observations_by_date_not_row_position():
+    index_left = pd.to_datetime(["2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01"])
+    index_right = pd.to_datetime(["2026-02-01", "2026-03-01", "2026-04-01"])
+
+    left = pd.Series([0.0, 100.0, 0.0, 0.0], index=index_left)
+    right = pd.Series([1.0, 0.0, 0.0], index=index_right)
+
+    result = calculate_correlation(left, right, min_observations=3)
+
+    assert result["status"] == "ok"
+    assert result["observations"] == 3
+    assert result["correlation"] == pytest.approx(1.0)
