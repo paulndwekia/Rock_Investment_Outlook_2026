@@ -149,6 +149,8 @@ export default function Dashboard() {
 
   const chartData = useMemo(() => (data.market_series ?? []).map((point) => ({
     date: new Date(point.observed_at).toLocaleDateString("en-KE", { day: "2-digit", month: "short" }),
+    dataset: point.dataset,
+    series: point.series,
     value: point.value,
     source: point.source_name,
     unit: point.unit
@@ -268,7 +270,7 @@ export default function Dashboard() {
                 <p className="mt-1 max-w-sm text-xs leading-5 text-[#8A908B]">When an authorised dataset is ingested, its actual observations and dates will appear here.</p>
               </div>}
             </div>
-            {chartData.length > 0 && <p className="mt-2 text-[10px] text-[#90958F]">Latest point source: {chartData[chartData.length - 1]?.source}</p>}
+            {chartData.length > 0 && <p className="mt-2 text-[10px] leading-5 text-[#90958F]">Series: {chartData[chartData.length - 1]?.series} · Dataset: {chartData[chartData.length - 1]?.dataset} · Unit: {chartData[chartData.length - 1]?.unit ?? "not specified"} · Source: {chartData[chartData.length - 1]?.source}</p>}
           </div>
 
           <div className="rounded-xl border border-[#E7E3DA] bg-white p-5 shadow-soft md:p-6">
