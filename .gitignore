@@ -62,3 +62,5 @@ data/raw/
 data/processed/
 database/*.db
 database/*.db-*
+
+# Tracked source exports still require a separate, reviewed history cleanup.
