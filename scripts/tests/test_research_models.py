@@ -12,6 +12,7 @@ from research_models import (
     calculate_correlation,
     calculate_index_performance,
     calculate_market_regime,
+    classify_market_regime,
     calculate_return_risk_statistics,
     calculate_rolling_risk,
     calculate_security_metrics,
@@ -263,3 +264,39 @@ def test_bond_index_performance_uses_levels_to_calculate_sample_return():
     assert result["latest_index_value"] == pytest.approx(1125.0)
     assert result["sample_return"] == pytest.approx(0.125)
     assert result["sample_return"] != result["latest_index_value"]
+
+
+def test_market_regime_classifies_constructive_observed_trend_without_forecast_claim():
+    result = classify_market_regime({
+        "is_full_consecutive_12m": True,
+        "historical_return_12m": 0.12,
+        "positive_month_share": 0.67,
+    })
+    assert result["status"] == "ok"
+    assert result["signal"] == "constructive"
+    assert result["is_forecast"] is False
+
+
+def test_market_regime_classifies_defensive_and_mixed_trends():
+    defensive = classify_market_regime({
+        "is_full_consecutive_12m": True,
+        "historical_return_12m": -0.1,
+        "positive_month_share": 0.4,
+    })
+    mixed = classify_market_regime({
+        "is_full_consecutive_12m": True,
+        "historical_return_12m": 0.1,
+        "positive_month_share": 0.4,
+    })
+    assert defensive["signal"] == "defensive"
+    assert mixed["signal"] == "mixed"
+
+
+def test_market_regime_classification_is_unavailable_without_twelve_consecutive_months():
+    result = classify_market_regime({
+        "is_full_consecutive_12m": False,
+        "historical_return_12m": np.nan,
+        "positive_month_share": np.nan,
+    })
+    assert result["status"] == "insufficient_history"
+    assert result["signal"] == "unavailable"
