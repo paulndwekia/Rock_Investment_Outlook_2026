@@ -1329,6 +1329,19 @@ elif page == "Fixed Income":
                 use_container_width=True
             )
 
+            curve_result = calculate_yield_curve_slope(curve)
+            if curve_result["status"] == "ok":
+                st.metric(
+                    "Observed long-short yield-curve slope",
+                    f"{curve_result['slope_percentage_points']:.2f} pp"
+                )
+                st.caption(
+                    f"Computed from {curve_result['short_maturity']} ({curve_result['short_yield']:.2f}%) "
+                    f"to {curve_result['long_maturity']} ({curve_result['long_yield']:.2f}%)."
+                )
+            else:
+                st.info("Yield-curve slope unavailable: " + curve_result.get("reason", "insufficient maturity points"))
+
             st.dataframe(
                 curve[
                     [
@@ -1420,6 +1433,18 @@ elif page == "Fixed Income":
                 use_container_width=True
             )
 
+            tbill_result = calculate_tbill_spread(bills)
+            if tbill_result["status"] == "ok":
+                st.metric(
+                    "Latest common-date 364D minus 91D spread",
+                    f"{tbill_result['spread_percentage_points']:.2f} pp"
+                )
+                st.caption(
+                    f"Both tenor observations are matched on {pd.Timestamp(tbill_result['date']):%d %b %Y}."
+                )
+            else:
+                st.info("Treasury-bill spread unavailable: " + tbill_result.get("reason", "matched-date rates missing"))
+
             st.caption(
                 "Extreme analytical outliers are excluded from "
                 "this chart; the original Rock records remain "
@@ -1473,6 +1498,19 @@ elif page == "Fixed Income":
                 fig,
                 use_container_width=True
             )
+
+            bond_result = calculate_index_performance(bond)
+            if bond_result["status"] == "ok":
+                st.metric(
+                    "Observed bond-index sample return",
+                    f"{bond_result['sample_return'] * 100:.2f}%"
+                )
+                st.caption(
+                    f"Calculated from index levels between {pd.Timestamp(bond_result['first_date']):%d %b %Y} "
+                    f"and {pd.Timestamp(bond_result['last_date']):%d %b %Y}; this is a historical sample return."
+                )
+            else:
+                st.info("Bond-index sample return unavailable: " + bond_result.get("reason", "insufficient dated index levels"))
 
             st.dataframe(
                 bond.sort_values(
