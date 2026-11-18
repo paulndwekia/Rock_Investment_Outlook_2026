@@ -349,6 +349,7 @@ page = st.sidebar.radio(
         "Macro Radar",
         "Cross-Market Research",
         "12-Month Outlook",
+        "Model Validation",
         "Data Governance"
     ]
 )
@@ -4490,38 +4491,29 @@ Interactive Research Platform
     )
 
     st.write(
-        """
-The Rock NSE export contained 190,409 records.
-8,855 exact duplicate records were identified,
-leaving 181,554 unique NSE observations across
-74 securities/series.
-"""
+        f"The currently loaded analytical sample contains {observation_count:,} cleaned NSE observations "
+        f"across {security_count:,} securities/series, dated {first_date:%d %b %Y} to {latest_date:%d %b %Y}. "
+        "Raw source observations are not rewritten by this view."
     )
 
     st.subheader(
         "Clean Analytical Modules"
     )
 
-    module_status = pd.DataFrame({
-        "Module": [
-            "Treasury Bills",
-            "NSE Bond Index",
-            "Forex Reserves",
-            "Inflation"
-        ],
-        "Database Table": [
-            "rock_treasury_bills_clean",
-            "rock_nse_bond_index_clean",
-            "rock_forex_reserves_clean",
-            "rock_inflation_clean"
-        ],
-        "Status": [
-            "READY",
-            "READY",
-            "READY",
-            "READY"
-        ]
-    })
+    clean_tables = [
+        ("Treasury Bills", "rock_treasury_bills_clean"),
+        ("NSE Bond Index", "rock_nse_bond_index_clean"),
+        ("Forex Reserves", "rock_forex_reserves_clean"),
+        ("Inflation", "rock_inflation_clean"),
+    ]
+    module_status = pd.DataFrame([
+        {
+            "Module": label,
+            "Database Table": table,
+            "Status": "READY" if not load_clean_table(table).empty else "MISSING / EMPTY",
+        }
+        for label, table in clean_tables
+    ])
 
     st.dataframe(
         module_status,
@@ -4550,6 +4542,76 @@ data should only occur where Rock Data Plus licensing permits it.
 """
     )
 
+
+elif page == "Model Validation":
+
+    st.header("Model Validation")
+    st.caption(
+        "This page reports the last generated research-engine validation. "
+        "A green dashboard build is not, by itself, evidence that each analytical model passed."
+    )
+
+    validation_path = ROOT / "analysis" / "model_validation.json"
+    outlook_path = ROOT / "analysis" / "outlook_quant_metrics.json"
+
+    if not validation_path.exists():
+        st.warning(
+            "No model-validation report exists yet. Run scripts/build_quant_engine.py "
+            "against the authorised local research database to generate it."
+        )
+    else:
+        try:
+            validation = json.loads(validation_path.read_text(encoding="utf-8"))
+        except Exception as error:
+            validation = {}
+            st.error(f"Could not read the model-validation report: {error}")
+
+        status = validation.get("overall_status", "unknown")
+        st.metric("Quantitative engine status", str(status).replace("_", " ").title())
+
+        display_rows = []
+        for name, result in validation.items():
+            if name in {"generated_at", "overall_status", "anomaly_policy"}:
+                continue
+            if isinstance(result, dict):
+                display_rows.append({
+                    "Model / Gate": name.replace("_", " ").title(),
+                    "Status": result.get("status", "details"),
+                    "Observations / Rows": result.get("observations", result.get("rows", "")),
+                    "Details": result.get("reason", result.get("signal", "")),
+                })
+
+        if display_rows:
+            st.dataframe(pd.DataFrame(display_rows), use_container_width=True, hide_index=True)
+
+        st.caption(f"Last report generated: {validation.get('generated_at', 'not recorded')}")
+        st.write(validation.get("anomaly_policy", ""))
+
+        if status != "passed":
+            st.warning(
+                "The engine has not passed every required gate. Models with insufficient, "
+                "non-finite or incomplete observations remain marked as incomplete."
+            )
+        else:
+            st.success("All configured quantitative-engine release gates passed for this report.")
+
+    st.divider()
+    st.subheader("Outlook summary status")
+    if outlook_path.exists():
+        try:
+            outlook_metrics = json.loads(outlook_path.read_text(encoding="utf-8"))
+            st.metric(
+                "Outlook calculation status",
+                str(outlook_metrics.get("overall_status", "unknown")).replace("_", " ").title()
+            )
+            incomplete = outlook_metrics.get("incomplete_sections", [])
+            st.write("Incomplete sections:", ", ".join(incomplete) if incomplete else "None recorded")
+            scenario = outlook_metrics.get("scenario_framework", {})
+            st.caption(scenario.get("note", "Scenario monitoring outputs are not forecasts."))
+        except Exception as error:
+            st.error(f"Could not read the outlook calculation report: {error}")
+    else:
+        st.info("The outlook summary has not been generated. Run scripts/build_outlook.py after the quantitative engine.")
 
 # ============================================================
 # FOOTER
