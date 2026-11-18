@@ -99,7 +99,7 @@ const sectionCopy: Record<string, { kicker: string; title: string; body: string;
       "Definitions, units and transformations",
       "Approved exports and attribution"
     ],
-    note: "Rock Data Plus integration remains subject to Rock Investment Bank’s written approval and the applicable data terms. Until an authorised API or export arrangement is confirmed, do not automate access or republish restricted source records."
+    note: "The dashboard can use publicly downloadable National Treasury/PDMO series for debt and annual macroeconomic context. These are not exchange prices or secondary-market yields. Rock Data Plus integration still requires Rock Investment Bank’s written approval and applicable data terms."
   }
 };
 
@@ -359,6 +359,7 @@ export default function Dashboard() {
                 {selectedSeriesMeta?.source_url && <> · <a href={selectedSeriesMeta.source_url} target="_blank" rel="noreferrer" className="font-semibold text-[#8A7040] underline underline-offset-2">Original data</a></>}
                 {selectedSeriesMeta?.source_page && <> · <a href={selectedSeriesMeta.source_page} target="_blank" rel="noreferrer" className="font-semibold text-[#8A7040] underline underline-offset-2">Source notes</a></>}
               </p>
+              {data.provider === "PDMO" && data.message && <p className="rounded-lg bg-[#F8F7F3] px-3 py-2 text-[10px] leading-5 text-[#767E78]">{data.message}</p>}
             </div>}
           </div>
 
