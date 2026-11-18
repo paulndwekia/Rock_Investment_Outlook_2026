@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetchPDMODomesticDebt, PDMO_DOMESTIC_DATASET } from "@/lib/public-data";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -25,40 +26,49 @@ export async function GET(request: NextRequest) {
   const baseUrl = process.env.DATA_API_URL?.replace(/\/$/, "");
   const token = process.env.DATA_API_TOKEN;
 
-  if (!baseUrl || !token) {
+  if (baseUrl && token) {
+    try {
+      const upstreamUrl = new URL(`${baseUrl}/v1/observations`);
+      upstreamUrl.searchParams.set("dataset", dataset);
+      upstreamUrl.searchParams.set("series_name", series);
+      upstreamUrl.searchParams.set("limit", String(limit));
+      const response = await fetch(upstreamUrl, {
+        cache: "no-store",
+        headers: { "Accept": "application/json", "Authorization": `Bearer ${token}` },
+        signal: AbortSignal.timeout(8000)
+      });
+      if (response.ok) {
+        const observations = await response.json();
+        return NextResponse.json({ status: "ok", market_series: observations }, { headers: { "Cache-Control": "no-store" } });
+      }
+    } catch {
+      // Continue to the public PDMO source below.
+    }
+  }
+
+  if (dataset !== PDMO_DOMESTIC_DATASET) {
     return NextResponse.json(
-      { status: "not_configured", message: "The research data service has not been connected yet." },
-      { status: 503, headers: { "Cache-Control": "no-store" } }
+      { status: "not_found", message: "That dataset is not available from the current public source." },
+      { status: 404, headers: { "Cache-Control": "no-store" } }
     );
   }
 
   try {
-    const upstreamUrl = new URL(`${baseUrl}/v1/observations`);
-    upstreamUrl.searchParams.set("dataset", dataset);
-    upstreamUrl.searchParams.set("series_name", series);
-    upstreamUrl.searchParams.set("limit", String(limit));
-
-    const response = await fetch(upstreamUrl, {
-      cache: "no-store",
-      headers: { "Accept": "application/json", "Authorization": `Bearer ${token}` },
-      signal: AbortSignal.timeout(8000)
-    });
-
-    if (!response.ok) {
+    const { observations } = await fetchPDMODomesticDebt();
+    const selected = observations.filter((item) => item.series === series).slice(-limit);
+    if (selected.length === 0) {
       return NextResponse.json(
-        { status: "unavailable", message: "The selected series is temporarily unavailable." },
-        { status: 503, headers: { "Cache-Control": "no-store" } }
+        { status: "not_found", message: "The selected series was not found in the PDMO dataset." },
+        { status: 404, headers: { "Cache-Control": "no-store" } }
       );
     }
-
-    const observations = await response.json();
     return NextResponse.json(
-      { status: "ok", market_series: observations },
-      { headers: { "Cache-Control": "no-store" } }
+      { status: "ok", market_series: selected },
+      { headers: { "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400" } }
     );
   } catch {
     return NextResponse.json(
-      { status: "unavailable", message: "The selected series could not be retrieved." },
+      { status: "unavailable", message: "The selected public data series could not be retrieved." },
       { status: 503, headers: { "Cache-Control": "no-store" } }
     );
   }
