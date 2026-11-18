@@ -246,23 +246,29 @@ if validation_path.exists():
 else:
     metrics["model_validation"] = {"overall_status": "not_run", "reason": "Run build_quant_engine.py first"}
 
-# Final machine-readable status: no success status if a required model/data section failed.
-required_sections = ("market_regime", "risk", "treasury_bills", "yield_curve", "bond_index", "inflation")
-metrics["overall_status"] = (
-    "passed"
-    if (
-        metrics["market_regime"].get("status") == "passed"
-        and metrics["risk"].get("status") == "passed"
-        and metrics["treasury_bills"].get("status") == "ok"
-        and metrics["yield_curve"].get("status") == "ok"
-        and metrics["bond_index"].get("status") == "ok"
-        and metrics["inflation"].get("status") == "passed"
-    )
-    else "incomplete"
+# Final machine-readable status: no success status if any upstream
+# quantitative-engine gate or required data section is incomplete.
+required_sections = (
+    "market_regime",
+    "risk",
+    "treasury_bills",
+    "yield_curve",
+    "bond_index",
+    "inflation",
+    "model_validation",
 )
+section_status = {
+    "market_regime": metrics["market_regime"].get("status") == "passed",
+    "risk": metrics["risk"].get("status") == "passed",
+    "treasury_bills": metrics["treasury_bills"].get("status") == "ok",
+    "yield_curve": metrics["yield_curve"].get("status") == "ok",
+    "bond_index": metrics["bond_index"].get("status") == "ok",
+    "inflation": metrics["inflation"].get("status") == "passed",
+    "model_validation": metrics["model_validation"].get("overall_status") == "passed",
+}
+metrics["overall_status"] = "passed" if all(section_status.values()) else "incomplete"
 metrics["incomplete_sections"] = [
-    section for section in required_sections
-    if metrics[section].get("status") not in ("passed", "ok")
+    section for section in required_sections if not section_status[section]
 ]
 
 # ---------------------------------------------------------------------------
