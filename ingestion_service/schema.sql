@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS market_observations (
     imported_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     row_hash CHAR(64) NOT NULL UNIQUE,
     raw_record JSONB NOT NULL DEFAULT '{}'::jsonb,
-    CHECK (isfinite(value))
+    CHECK (value > '-Infinity'::DOUBLE PRECISION AND value < 'Infinity'::DOUBLE PRECISION)
 );
 
 CREATE INDEX IF NOT EXISTS idx_market_observations_dataset_date
