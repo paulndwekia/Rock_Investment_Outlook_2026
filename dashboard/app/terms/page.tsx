@@ -1,0 +1,16 @@
+export default function TermsPage() {
+  return <main className="mx-auto max-w-3xl px-6 py-16 text-[#263139]">
+    <a href="/" className="text-sm text-[#907342]">← Back to dashboard</a>
+    <p className="mt-10 text-xs font-semibold uppercase tracking-[.18em] text-[#A08A5D]">Platform information</p>
+    <h1 className="mt-3 text-3xl font-semibold tracking-tight">Terms of use</h1>
+    <p className="mt-3 text-sm leading-7 text-[#6F7975]">Kenya Investment Intelligence is an independent financial research platform. It is not a bank, broker, investment adviser or representative of Rock Investment Bank. Any reference to a data provider or research competition describes the relevant source or project context and does not imply endorsement.</p>
+    <div className="mt-8 space-y-6 text-sm leading-7 text-[#57625F]">
+      <section><h2 className="font-semibold text-[#263139]">Research, not investment advice</h2><p>Content is provided for research and educational purposes. It is not personalised financial, legal or tax advice, and is not a recommendation to buy, sell or hold a security. Consider your objectives and obtain independent professional advice before making investment decisions.</p></section>
+      <section><h2 className="font-semibold text-[#263139]">Data and limitations</h2><p>Market information may be delayed, incomplete, corrected or unavailable. Observed records, calculated indicators and forward-looking scenarios are distinct. Historical performance and statistical relationships do not guarantee future results. Always check material information against the original source.</p></section>
+      <section><h2 className="font-semibold text-[#263139]">Intellectual property and source conditions</h2><p>Third-party datasets, logos, publications and other materials remain subject to their owners’ rights and applicable licence terms. Access to a dataset does not grant permission to reproduce or redistribute it. Users must not attempt to bypass access controls or misuse the platform.</p></section>
+      <section><h2 className="font-semibold text-[#263139]">Availability and liability</h2><p>The platform is provided on an as-available basis. To the extent permitted by applicable law, its developers are not liable for losses arising from reliance on incomplete, delayed or inaccurate information or temporary service interruption.</p></section>
+      <section><h2 className="font-semibold text-[#263139]">Updates</h2><p>These terms may be updated as the platform, data permissions and services change. The effective version should be reviewed before continued use.</p></section>
+    </div>
+    <p className="mt-10 border-t border-[#E7E3DA] pt-5 text-xs text-[#929791]">Draft platform terms. Obtain legal review and confirm actual operating practices before public launch.</p>
+  </main>;
+}
