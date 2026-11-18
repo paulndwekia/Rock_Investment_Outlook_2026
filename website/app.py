@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from research_models import (
     calculate_correlation,
     calculate_market_regime,
+    classify_market_regime,
     calculate_return_risk_statistics,
     calculate_tbill_spread,
     calculate_yield_curve_slope,
@@ -515,6 +516,7 @@ elif page == "Market Regime":
     )
 
     regime = calculate_market_regime(nse, months_required=12)
+    regime_signal = classify_market_regime(regime)
     monthly = regime["monthly"].copy()
 
     if not monthly.empty:
@@ -539,7 +541,7 @@ elif page == "Market Regime":
     volatility = regime.get("annualised_monthly_volatility", np.nan)
     positive_months = regime.get("positive_month_share", np.nan)
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
 
     c1.metric(
         "Recent 12-Month Compounded Mean-Security Return",
@@ -559,14 +561,20 @@ elif page == "Market Regime":
             else "N/A"
         )
     )
+    
+    c4.metric(
+        "Observed Trend Signal",
+        regime_signal["signal"].replace("_", " ").title()
+    )
 
     st.info(
         "This is an equal-weighted cross-sectional security-return proxy, not an official NSE index. "
+        "The observed trend signal is rule-based, not a forecast or probability estimate. "
         f"Available monthly observations in the latest window: {regime.get('months_available', 0)}. "
         + (
-            "A full consecutive 12-month compounded return is available."
-            if regime.get("is_full_consecutive_12m", False)
-            else "The full consecutive 12-month return is withheld because the history is incomplete."
+            regime_signal["reason"]
+            if regime_signal["status"] == "ok"
+            else "The trend signal is unavailable until 12 consecutive months are present."
         )
     )
 
@@ -3838,6 +3846,13 @@ elif page == "12-Month Outlook":
         calculation_error = str(error)
 
     # ============================================================
+    # Use the same validated equity market-return proxy as the Market Regime page.
+    outlook_regime = calculate_market_regime(nse, months_required=12)
+    outlook["historical_return"] = outlook_regime.get("historical_return_12m", np.nan)
+    outlook["annualised_vol"] = outlook_regime.get("annualised_monthly_volatility", np.nan)
+    outlook["max_drawdown"] = outlook_regime.get("maximum_drawdown_12m", np.nan)
+    outlook["market_regime_signal"] = classify_market_regime(outlook_regime)
+
     # Recalculate fixed-income indicators from dated cleaned source series.
     # If a source file is absent or malformed, the relevant metric stays unavailable.
     fixed_income_status = {}
