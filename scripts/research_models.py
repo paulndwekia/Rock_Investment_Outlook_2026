@@ -294,6 +294,13 @@ def calculate_market_regime(
         and bool(np.all(np.diff(month_ordinals) == 1))
     )
     return_series = _finite_numeric(recent["Market_Return"])
+    wealth = (1.0 + return_series).cumprod() if consecutive else pd.Series(dtype=float)
+    max_drawdown = (
+        float((wealth / wealth.cummax() - 1.0).min())
+        if not wealth.empty
+        else float("nan")
+    )
+
     return {
         "status": "ok" if len(recent) >= 2 else "insufficient_history",
         "monthly": monthly,
@@ -308,6 +315,7 @@ def calculate_market_regime(
             if len(return_series) >= 2
             else float("nan")
         ),
+        "maximum_drawdown_12m": max_drawdown,
         "positive_month_share": (
             float((return_series > 0).mean())
             if len(return_series) >= 2
@@ -315,6 +323,44 @@ def calculate_market_regime(
         ),
         "is_full_consecutive_12m": bool(consecutive),
         "definition": "Equal-weighted cross-sectional security-return proxy; not an official NSE index.",
+    }
+
+
+def classify_market_regime(regime: dict[str, Any]) -> dict[str, Any]:
+    """Classify observed 12-month trend without claiming a forecast or probability."""
+    if not regime.get("is_full_consecutive_12m", False):
+        return {
+            "status": "insufficient_history",
+            "signal": "unavailable",
+            "reason": "A full consecutive 12-month return history is required.",
+            "is_forecast": False,
+        }
+
+    historical_return = regime.get("historical_return_12m", float("nan"))
+    positive_share = regime.get("positive_month_share", float("nan"))
+    if not np.isfinite([historical_return, positive_share]).all():
+        return {
+            "status": "unavailable",
+            "signal": "unavailable",
+            "reason": "Required return indicators are not finite.",
+            "is_forecast": False,
+        }
+
+    if historical_return > 0 and positive_share >= 0.5:
+        signal = "constructive"
+        reason = "Positive 12-month compounded return with at least half of months positive."
+    elif historical_return < 0 and positive_share < 0.5:
+        signal = "defensive"
+        reason = "Negative 12-month compounded return with fewer than half of months positive."
+    else:
+        signal = "mixed"
+        reason = "Return direction and monthly breadth do not give a consistent trend signal."
+
+    return {
+        "status": "ok",
+        "signal": signal,
+        "reason": reason,
+        "is_forecast": False,
     }
 
 
