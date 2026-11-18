@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:public-data": "node --test tests/public-data.test.cjs"
   },
   "dependencies": {
     "framer-motion": "^11.18.2",
